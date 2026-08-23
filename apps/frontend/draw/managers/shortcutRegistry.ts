@@ -782,7 +782,7 @@ export function createShortcutRegistry(): Shortcut[] {
             category: "panel",
             description: "Show shortcuts panel (?)",
             match: (e, ctx) =>
-                e.key === "?" &&
+                (e.key === "?" || (e.code === "Slash" && e.shiftKey)) &&
                 !e.ctrlKey &&
                 !e.metaKey &&
                 !e.altKey,
