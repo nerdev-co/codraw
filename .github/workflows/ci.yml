@@ -34,7 +34,7 @@ jobs:
         run: bun run build
 
       - name: Package frontend build
-        run: tar -czf frontend-build.tar.gz --exclude='.next/cache' -C apps/frontend .next
+        run: tar -czf frontend-build.tar.gz -C apps/frontend dist
 
       - uses: actions/upload-artifact@v4
         with:
@@ -52,7 +52,7 @@ jobs:
     permissions:
       contents: read
     env:
-      APP_DIR: ${{ vars.APP_DIR || '/home/ubuntu/codraw' }}
+      APP_DIR: ${{ vars.APP_DIR || '/opt/codraw' }}
       REPO_URL: ${{ vars.REPO_URL }}
       DEPLOY_REF: ${{ github.event.inputs.deploy_ref || 'main' }}
       SITE_URL: ${{ vars.SITE_URL || 'https://codraw.nerdev.in' }}
@@ -163,8 +163,8 @@ jobs:
             echo ">>> Backend health (http://localhost:3001/health):"
             curl -fsS --max-time 20 http://localhost:3001/health
             echo
-            echo ">>> Frontend (http://localhost:3000):"
-            curl -fsS -o /dev/null -w "status %{http_code}\n" --max-time 20 http://localhost:3000
+            echo ">>> Frontend via nginx (http://localhost):"
+            curl -fsS -o /dev/null -w "status %{http_code}\n" --max-time 20 http://localhost/
           HEALTH
           echo ">>> Public site ($SITE_URL):"
           curl -fsS -o /dev/null -w "status %{http_code}\n" --max-time 25 "$SITE_URL"

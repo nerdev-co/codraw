@@ -12,13 +12,13 @@ Deploy **codraw** to a single AWS EC2 instance (Ubuntu 24.04) with Nginx, PM2, a
                  └───────┬────────┘
                          │  :80 / :443 (HTTPS)
                  ┌───────▼────────┐
-                 │     Nginx      │   reverse proxy + TLS
+                 │     Nginx      │   TLS + static frontend + reverse proxy
                  └───┬────┬────┬──┘
                      │    │    │
              ┌───────▼┐ ┌─▼────┐ ┌▼────────┐
-             │Frontend│ │ HTTP │ │  WebSocket │
-             │Next.js │ │ API  │ │  Backend   │
-             │  :3000 │ │ :3001│ │  :8080     │
+             │Frontend│ │ HTTP │ │ WebSocket │
+             │ Vite   │ │ API  │ │  Backend   │
+             │  dist/ │ │:3001 │ │  :8080     │
              └────────┘ └──┬───┘ └┬──────────┘
                            │      │
                      ┌─────▼──────▼─────┐
@@ -26,7 +26,7 @@ Deploy **codraw** to a single AWS EC2 instance (Ubuntu 24.04) with Nginx, PM2, a
                      └──────────────────┘
 ```
 
-All three services run under **PM2** on one instance. The frontend and both backends share one Postgres database (Neon).
+All three services run under **PM2** on one instance. The frontend is a Vite static build served directly by Nginx. Both backends share one Postgres database (Neon).
 
 ---
 
@@ -45,17 +45,18 @@ git push origin main
         ▼
 git pull latest              bun install             pm2 restart
 (reset --hard)         prisma generate           with updated env
-                        prisma migrate deploy
+                       prisma migrate deploy
         │
         ▼
-drop prebuilt .next
+drop prebuilt dist/
 into apps/frontend/
 ```
 
 - The single workflow lives in `.github/workflows/ci.yml`
-- The `build` job runs on the GitHub Actions runner: typecheck, build, then package `apps/frontend/.next` as a compressed artifact
+- The `build` job runs on the GitHub Actions runner: typecheck, build, then package `apps/frontend/dist` as a compressed artifact
 - The `deploy` job downloads the artifact, transfers it to EC2 via `scp`, then SSHes in to apply it
-- The frontend is **never rebuilt on EC2** — the t3.small only receives the prebuilt `.next/` directory extracted into `apps/frontend/`
+- The frontend is **never rebuilt on EC2** — the t3.small only receives the prebuilt `dist/` directory extracted into `apps/frontend/`
+- Nginx serves the frontend static files directly from `apps/frontend/dist/`
 - Deploys are **serialized** (a `deploy-ec2` concurrency group queues runs — no two deploys race on the server)
 - After deploying, the workflow runs a **post-deploy health check**: backend `/health`, frontend on `:3000`, and the public `https://` site — the job fails if any is down
 - The live commit is recorded in `APP_DIR/.deployed-commit`
@@ -70,7 +71,7 @@ into apps/frontend/
 | AWS account   | aws.amazon.com                  | —                                             |
 | Domain name   | any registrar                   | A record will point to the EC2 IP             |
 | Neon Postgres | neon.tech                       | free tier is fine; DB schema already migrated |
-| GitHub repo   | `NalinDalal/week-22-excalidraw` | main branch contains all deploy fixes         |
+| GitHub repo   | `NalinDalal/codraw`             | main branch contains all deploy fixes         |
 
 ---
 
@@ -84,7 +85,7 @@ EC2 → **Launch instance**:
 | --------------------- | ----------------------------------------------------------- |
 | Name                  | `codraw`                                                    |
 | AMI                   | **Ubuntu Server 24.04 LTS** (HVM, x86)                      |
-| Instance type         | **t3.small** (2 GB RAM — Next.js builds need it)            |
+| Instance type         | **t3.small** (2 GB RAM — Vite builds need it)               |
 | Key pair              | **Create new** → name `codraw` → **download the `.pem`** ⚠️ |
 | VPC / subnet          | default                                                     |
 | Auto-assign public IP | **Enable**                                                  |
@@ -171,7 +172,7 @@ Remove the `HTTP_PORT` / `WS_PORT` lines if present — the code reads `PORT` in
 ```bash
 cd /opt/codraw
 bun install --frozen-lockfile
-bun run build                          # turbo build: prisma generate + next build
+bun run build                          # turbo build: prisma generate + vite build
 cd packages/db && bun prisma migrate deploy && cd ../..
 pm2 start deploy/pm2/ecosystem.config.js
 pm2 save
@@ -181,7 +182,7 @@ pm2 startup systemd -u $USER --hp $HOME   # survives reboots
 **Verify:**
 
 ```bash
-pm2 list                                # frontend, http-backend, ws-backend all "online"
+pm2 list                                # http-backend, ws-backend both "online"
 curl localhost:3001/health              # → ok
 ```
 
@@ -194,8 +195,9 @@ curl localhost:3001/health              # → ok
 The reverse proxy config is committed in the repo — copy it and substitute your domain:
 
 ```bash
-sudo cp /opt/codraw/deploy/nginx/default.conf /etc/nginx/sites-available/default
-sudo sed -i 's/%DOMAIN%/your-domain.com/g' /etc/nginx/sites-available/default
+sudo cp /opt/codraw/deploy/nginx/codraw.conf /etc/nginx/sites-available/codraw
+sudo ln -sf /etc/nginx/sites-available/codraw /etc/nginx/sites-enabled/codraw
+sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
@@ -203,7 +205,7 @@ It routes:
 
 | Path    | Upstream         | Notes                                                          |
 | ------- | ---------------- | -------------------------------------------------------------- |
-| `/`     | `localhost:3000` | Next.js frontend                                               |
+| `/`     | static `dist/`   | Vite frontend — served directly by Nginx from `apps/frontend/dist/` |
 | `/api/` | `localhost:3001` | HTTP API — **prefix stripped** (backend routes have no `/api`) |
 | `/ws`   | `localhost:8080` | WebSocket backend (matches `/ws` and `/ws/*`)                  |
 
@@ -236,8 +238,8 @@ GitHub repo → **Settings → Secrets and variables → Actions**:
 
 | Name       | Value                                                                                                                                                              |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `REPO_URL` | the clone URL you used in step 5 (`https://github.com/NalinDalal/week-22-excalidraw.git` or the `git@` form) — **do not leave empty**, the deploy fails without it |
-| `APP_DIR`  | `/opt/codraw` (optional — defaults to this)                                                                                                                        |
+| `REPO_URL` | the clone URL you used in step 5 (`https://github.com/NalinDalal/codraw.git` or the `git@` form) — **do not leave empty**, the deploy fails without it             |
+| `APP_DIR`  | `/opt/codraw` (optional — defaults to this)                                                                                                                         |
 
 > Tip: `EC2_HOST` as a domain (`ec2-…compute.amazonaws.com`) can work, but a raw public IP is most reliable.
 
@@ -258,9 +260,9 @@ From then on, every push to `main` deploys automatically. The workflow:
 
 - `git fetch && git reset --hard origin/main` (pulls latest, keeps untracked `.env`)
 - `bun install` (resolves workspace packages, installs deps)
-- drops the prebuilt `.next/` artifact into `apps/frontend/`
+- drops the prebuilt `dist/` artifact into `apps/frontend/`
 - `prisma generate` + `prisma migrate deploy`
-- `pm2 start deploy/pm2/ecosystem.config.js --update-env` (idempotent)
+- `pm2 start deploy/pm2/ecosystem.config.js --update-env` (idempotent, starts backends only)
 - writes the deployed commit SHA to `APP_DIR/.deployed-commit`
 - verifies the deploy with a post-deploy health check (fails the job if the site is down)
 
@@ -274,7 +276,7 @@ If a new deploy breaks prod, redeploy the last known-good commit:
 
 The deploy script fetches and `git reset --hard` to that ref, rebuilds, and restarts services. The health check runs against the rolled-back build too.
 
-> To find the last good SHA, add a grep line to the GitHub Actions log, or on the server: `cat /opt/codraw/.deployed-commit`.
+> To find the last good SHA, on the server: `cat /opt/codraw/.deployed-commit`.
 
 ---
 
@@ -287,7 +289,7 @@ The deploy script fetches and `git reset --hard` to that ref, rebuilds, and rest
 | Restart everything      | `pm2 restart all`                                                      |
 | Check deployed commit   | `cat /opt/codraw/.deployed-commit`                                     |
 | Change `.env`           | edit `/opt/codraw/.env`, then `pm2 restart all`                        |
-| Change `NEXT_PUBLIC_*`  | edit `.env`, then `cd /opt/codraw && bun run build && pm2 restart all` |
+| Change frontend env     | edit `.env`, then `cd /opt/codraw && bun run build && pm2 restart all` |
 | Run migrations manually | `cd /opt/codraw/packages/db && bun prisma migrate deploy`              |
 | Nginx status / reload   | `sudo systemctl status nginx` / `sudo systemctl reload nginx`          |
 | Renew certs (auto)      | `sudo certbot renew --dry-run` to verify                               |
@@ -313,7 +315,7 @@ The deploy script fetches and `git reset --hard` to that ref, rebuilds, and rest
 
 - **SSH is key-only**: Ubuntu images disable password auth by default (`PasswordAuthentication no`) — an open port 22 with key auth is the accepted pattern for small deployments; GitHub Actions runners need it open because their IPs are dynamic and unknown in advance
 - The GitHub Actions **deploy key** (`EC2_SSH_KEY`) can log in as `ubuntu` — keep it out of any public repo or log
-- Only ports **22, 80, 443** are open; the app ports (3000/3001/8080) are bound to localhost
+- Only ports **22, 80, 443** are open; the app ports (3001/8080) are bound to localhost
 - Optional hardening: `fail2ban`, restrict port 22 to your IP for interactive sessions (the workflow will need its own rule), or move to SSM Session Manager
 - `JWT_SECRET` and `DATABASE_URL` live only in `/opt/codraw/.env` (gitignored) and GitHub secrets — never commit them
 
@@ -338,7 +340,7 @@ The deploy script fetches and `git reset --hard` to that ref, rebuilds, and rest
 
 **Frontend blank page / API errors**
 
-- `NEXT_PUBLIC_*` baked at build time → rebuild: `cd /opt/codraw && bun run build && pm2 restart all`
+- Frontend is baked at build time → rebuild: `cd /opt/codraw && bun run build && pm2 restart all`
 - Check `ALLOWED_ORIGINS` includes your domain — prod CORS blocks everything without it
 - Nginx `/api/` must strip the prefix (`proxy_pass http://localhost:3001/;`)
 
