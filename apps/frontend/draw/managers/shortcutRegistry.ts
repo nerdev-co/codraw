@@ -785,8 +785,7 @@ export function createShortcutRegistry(): Shortcut[] {
                 e.key === "?" &&
                 !e.ctrlKey &&
                 !e.metaKey &&
-                !e.altKey &&
-                !e.shiftKey,
+                !e.altKey,
             action: (ctx, api, _e) => api.shortcutsCallback?.(),
         },
 
