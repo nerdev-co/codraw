@@ -39,7 +39,7 @@ function timeAgo(iso: string): string {
 function RoomCard({ slug, ago }: { slug: string; ago: string }) {
   return (
     <Link
-      to={`/canvas/${slug}`}
+      to={`/canvas/${slug}` as any}
       className="group flex items-center justify-between gap-3 px-4 py-3 border border-border dark:border-border-dark rounded-lg bg-card dark:bg-card-dark transition-[border-color,transform] duration-fast ease-spring hover:border-primary hover:-translate-y-0.5"
     >
       <div className="flex items-center gap-3 min-w-0">

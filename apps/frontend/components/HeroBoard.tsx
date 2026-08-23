@@ -189,7 +189,7 @@ export function HeroBoard() {
       draw(0);
     } else {
       const io = new IntersectionObserver(
-        ([entry]) => (entry.isIntersecting ? start() : stop()),
+        ([entry]) => entry?.isIntersecting ? start() : stop(),
         { rootMargin: "200px" },
       );
       io.observe(canvas);
