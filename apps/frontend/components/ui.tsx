@@ -3,13 +3,13 @@
  *
  * Everything platform-neutral lives in `@repo/ui/chrome` (shared design
  * system); this file re-exports it and keeps only the pieces that need
- * the app package: {@link MenuRow} renders `next/link` rows.
+ * the app package: {@link MenuRow} renders `@tanstack/react-router` rows.
  */
 
 "use client";
 
 import { ReactNode } from "react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 export * from "@repo/ui/chrome";
 export * from "@repo/ui/icon-button";
@@ -65,7 +65,7 @@ export function MenuRow({
 
     if (href) {
         return (
-            <Link href={href} onClick={onClick} aria-current={active ? "true" : undefined} className={rowClass}>
+            <Link to={href} onClick={onClick} aria-current={active ? "true" : undefined} className={rowClass}>
                 {rowContent}
             </Link>
         );

@@ -18,7 +18,7 @@
 import { HTTP_BACKEND } from "@/config";
 import axios, { isAxiosError } from "axios";
 import { Pencil } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useNavigate, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import { Input } from "./ui";
 
@@ -26,8 +26,9 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
-    const router = useRouter();
-    const searchParams = useSearchParams();
+    const navigate = useNavigate();
+    const { search } = useLocation();
+    const searchParams = new URLSearchParams(search);
     const next = searchParams.get("next");
 
     /** Redirect target after auth — only allow same-app paths (no open redirect) */
@@ -64,20 +65,17 @@ export function AuthPage({ isSignin }: { isSignin: boolean }) {
             );
 
             if (isSignin) {
-                // httpOnly cookie is set by the server — no token stored in JS
-                router.push(redirectTo);
+                navigate({ to: redirectTo });
             } else {
-                // Auto sign-in right after signup so the user lands in the
-                // workspace directly instead of bouncing through /signin.
                 try {
                     await axios.post(
                         `${HTTP_BACKEND}/signin`,
                         { email, password },
                         { withCredentials: true },
                     );
-                    router.push(redirectTo);
+                    navigate({ to: redirectTo });
                 } catch {
-                    router.push("/signin");
+                    navigate({ to: "/signin" });
                 }
             }
 

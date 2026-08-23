@@ -3,7 +3,7 @@
 import { HTTP_BACKEND } from "@/config";
 import { Button } from "@/components/ui";
 import { Pencil } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import axios, { isAxiosError } from "axios";
 import { useState } from "react";
 
@@ -16,7 +16,7 @@ import { useState } from "react";
  * On other errors, displays an inline error message.
  */
 export function OpenCanvasButton() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
   /**
@@ -33,10 +33,10 @@ export function OpenCanvasButton() {
         { name: `room-${Date.now()}` },
         { withCredentials: true },
       );
-      router.push(`/canvas/${res.data.slug}`);
+      navigate({ to: `/canvas/${res.data.slug}` });
     } catch (e) {
       if (isAxiosError(e) && (e.response?.status === 401 || e.response?.status === 403)) {
-        router.push("/signin");
+        navigate({ to: "/signin" });
       } else {
         setError("Failed to create room. Please try again.");
       }

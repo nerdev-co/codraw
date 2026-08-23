@@ -12,8 +12,8 @@
 import { HTTP_BACKEND } from "@/config";
 import { Button } from "@/components/ui";
 import { ArrowUpRight, History, Pencil, SquarePlus } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import axios, { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { getRecentRooms, type RecentRoom } from "@/lib/recents";
@@ -39,7 +39,7 @@ function timeAgo(iso: string): string {
 function RoomCard({ slug, ago }: { slug: string; ago: string }) {
   return (
     <Link
-      href={`/canvas/${slug}`}
+      to={`/canvas/${slug}`}
       className="group flex items-center justify-between gap-3 px-4 py-3 border border-border dark:border-border-dark rounded-lg bg-card dark:bg-card-dark transition-[border-color,transform] duration-fast ease-spring hover:border-primary hover:-translate-y-0.5"
     >
       <div className="flex items-center gap-3 min-w-0">
@@ -57,7 +57,7 @@ function RoomCard({ slug, ago }: { slug: string; ago: string }) {
 }
 
 export function RoomList() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState<RoomSummary[] | null>(null);
   const [recents, setRecents] = useState<RecentRoom[]>([]);
   const [authError, setAuthError] = useState(false);
@@ -101,10 +101,10 @@ export function RoomList() {
           Sign in to create a room and pick up where you left off.
         </p>
         <div className="flex gap-3 mt-3">
-          <Link href="/signin">
+          <Link to="/signin">
             <Button variant="primary">Sign in</Button>
           </Link>
-          <Link href="/signup">
+          <Link to="/signup">
             <Button variant="secondary">Sign up</Button>
           </Link>
         </div>
@@ -151,10 +151,10 @@ export function RoomList() {
                 { name: `room-${Date.now()}` },
                 { withCredentials: true },
               );
-              router.push(`/canvas/${res.data.slug}`);
+              navigate({ to: `/canvas/${res.data.slug}` });
             } catch (e) {
               if (isAxiosError(e) && (e.response?.status === 401 || e.response?.status === 403)) {
-                router.push("/signin");
+                navigate({ to: "/signin" });
               } else {
                 setError("Failed to create room. Please try again.");
               }

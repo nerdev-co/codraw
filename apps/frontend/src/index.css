@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@custom-variant dark (&.dark);
+
+@theme {
+  --color-canvas: #fafafa;
+  --color-canvas-dark: #131217;
+  --color-card: #ffffff;
+  --color-card-dark: #1d222b;
+  --color-elevated: #ffffff;
+  --color-elevated-dark: #1d222b;
+  --color-muted: #f3f4f6;
+  --color-muted-dark: #22262f;
+  --color-hover: rgba(0, 0, 0, 0.04);
+  --color-hover-dark: rgba(255, 255, 255, 0.07);
+  --color-active: rgba(0, 0, 0, 0.08);
+  --color-active-dark: rgba(255, 255, 255, 0.12);
+  --color-selected: rgba(37, 99, 235, 0.12);
+  --color-selected-dark: rgba(96, 165, 250, 0.16);
+  --color-foreground: #1f2937;
+  --color-foreground-dark: rgba(255, 255, 255, 0.92);
+  --color-muted-foreground: #6b7280;
+  --color-muted-foreground-dark: rgba(255, 255, 255, 0.55);
+  --color-icon-primary: #1f2937;
+  --color-icon-primary-dark: rgba(255, 255, 255, 0.85);
+  --color-icon-secondary: #6b7280;
+  --color-icon-secondary-dark: rgba(255, 255, 255, 0.62);
+  --color-border: #e5e7eb;
+  --color-border-dark: rgba(255, 255, 255, 0.12);
+  --color-border-subtle: #eceef1;
+  --color-border-subtle-dark: rgba(255, 255, 255, 0.08);
+  --color-primary: #2b6fe8;
+  --color-primary-foreground: #ffffff;
+  --color-accent-hover: #2563eb;
+  --color-accent-hover-dark: #4d93f7;
+  --color-highlight: #2563eb;
+  --color-highlight-dark: #60a5fa;
+  --color-highlight-foreground: #ffffff;
+  --color-highlight-foreground-dark: #071120;
+  --color-danger: #dc2626;
+  --color-danger-dark: #f87171;
+  --color-danger-foreground: #ffffff;
+  --color-success: #15803d;
+  --color-success-dark: #4ade80;
+  --color-success-foreground: #ffffff;
+
+  --font-family-sans: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-family-mono: "Geist Mono", ui-monospace, Menlo, monospace;
+
+  --text-10: 0.625rem;
+  --text-11: 0.6875rem;
+  --text-13: 0.8125rem;
+
+  --shadow-soft: 0 1px 3px rgba(16, 24, 40, 0.07), 0 6px 20px rgba(16, 24, 40, 0.10);
+  --shadow-soft-dark: 0 1px 3px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-float: 0 2px 6px rgba(16, 24, 40, 0.04), 0 12px 32px rgba(16, 24, 40, 0.12);
+  --shadow-float-dark: 0 2px 8px rgba(0, 0, 0, 0.3), 0 14px 40px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 0 0 1px rgba(37, 99, 235, 0.25), 0 0 20px rgba(59, 130, 246, 0.25);
+  --shadow-glow-dark: 0 0 0 1px rgba(147, 197, 253, 0.25), 0 0 24px rgba(96, 165, 250, 0.35);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --transition-duration-fast: 140ms;
+  --transition-duration-slow: 280ms;
+  --transition-timing-function-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-timing-function-skid: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popover-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes tooltip-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes edge-in-left {
+  from { opacity: 0; transform: translateX(-14px) scale(0.98); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes edge-in-right {
+  from { opacity: 0; transform: translateX(14px) scale(0.98); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes sheet-in {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tool-pop {
+  0% { transform: scale(1); }
+  55% { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+
+@theme {
+  --animate-popover-in: popover-in 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-tooltip-in: tooltip-in 100ms ease-out;
+  --animate-panel-in: panel-in 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-edge-in-left: edge-in-left 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-edge-in-right: edge-in-right 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-sheet-in: sheet-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-modal-in: modal-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-fade-in: fade-in 160ms ease-out;
+  --animate-tool-pop: tool-pop 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}

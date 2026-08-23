@@ -6,12 +6,12 @@
 "use client";
 
 import { HTTP_BACKEND } from "@/config";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "@tanstack/react-router";
 import axios from "axios";
 import { useState } from "react";
 
 export function SignOutButton() {
-    const router = useRouter();
+    const navigate = useNavigate();
     const [busy, setBusy] = useState(false);
 
     async function handleClick() {
@@ -23,8 +23,7 @@ export function SignOutButton() {
                 error: err instanceof Error ? err.message : String(err),
             });
         }
-        router.push("/");
-        router.refresh();
+        navigate({ to: "/" });
     }
 
     return (
