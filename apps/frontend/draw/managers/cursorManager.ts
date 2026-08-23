@@ -164,6 +164,13 @@ export class CursorManager {
         for (const cursor of this.remoteCursors.values()) {
             const size = 12 / this.context.viewport.zoom;
             const fontSize = 11 / this.context.viewport.zoom;
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.moveTo(cursor.x, cursor.y);
+            ctx.lineTo(cursor.x + size, cursor.y + size * 2);
+            ctx.lineTo(cursor.x + size * 0.6, cursor.y + size * 1.2);
+            ctx.closePath();
+            ctx.fill();
             ctx.fillStyle = cursor.color;
             ctx.beginPath();
             ctx.moveTo(cursor.x, cursor.y);

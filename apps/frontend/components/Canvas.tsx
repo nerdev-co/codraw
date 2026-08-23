@@ -64,7 +64,7 @@ export function Canvas({
             strokeColor: DEFAULT_STROKE,
             backgroundColor: "transparent",
             strokeWidth: 1.5,
-            roughness: 0,
+            roughness: 1,
             opacity: 1,
             fillStyle: "solid",
         };

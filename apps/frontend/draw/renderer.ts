@@ -320,6 +320,10 @@ export function drawSelection(
         }
         ctx.strokeStyle = pick(SELECTION_OUTLINE, isDark);
         ctx.lineWidth = 1 / viewport.zoom;
+        ctx.shadowColor = pick(SELECTION_OUTLINE, isDark);
+        ctx.shadowBlur = 6 / viewport.zoom;
+        ctx.strokeRect(bounds.x, bounds.y, bounds.w, bounds.h);
+        ctx.shadowBlur = 0;
         ctx.strokeRect(bounds.x, bounds.y, bounds.w, bounds.h);
         ctx.globalAlpha = handleAlpha;
         ctx.fillStyle = pick(SELECTION_HANDLE, isDark);
@@ -356,6 +360,10 @@ export function drawSelection(
         }
         ctx.strokeStyle = pick(SELECTION_OUTLINE, isDark);
         ctx.lineWidth = 1 / viewport.zoom;
+        ctx.shadowColor = pick(SELECTION_OUTLINE, isDark);
+        ctx.shadowBlur = 6 / viewport.zoom;
+        ctx.strokeRect(bounds.x, bounds.y, bounds.w, bounds.h);
+        ctx.shadowBlur = 0;
         ctx.strokeRect(bounds.x, bounds.y, bounds.w, bounds.h);
         ctx.restore();
 
