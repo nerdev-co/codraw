@@ -335,8 +335,9 @@ export class RenderManager {
 
         if (this.context.cropMode && this.context.cropRect) {
             this.api.ctx.save();
-            this.api.ctx.translate(this.context.viewport.panX, this.context.viewport.panY);
+            // Correct transform order: scale by zoom FIRST, then translate by pan
             this.api.ctx.scale(this.context.viewport.zoom, this.context.viewport.zoom);
+            this.api.ctx.translate(this.context.viewport.panX, this.context.viewport.panY);
             const r = this.context.cropRect;
             this.api.ctx.fillStyle = CROP_DIM;
             this.api.ctx.fillRect(r.x, r.y, r.w, r.h);
@@ -365,8 +366,9 @@ export class RenderManager {
         // Draw alignment guides
         if (this.context.alignmentGuides.length > 0) {
             this.api.ctx.save();
-            this.api.ctx.translate(this.context.viewport.panX, this.context.viewport.panY);
+            // Correct transform order: scale by zoom FIRST, then translate by pan
             this.api.ctx.scale(this.context.viewport.zoom, this.context.viewport.zoom);
+            this.api.ctx.translate(this.context.viewport.panX, this.context.viewport.panY);
             this.api.ctx.strokeStyle = pick(SELECTION_GUIDE, this.context.isDark);
             this.api.ctx.lineWidth = 1 / this.context.viewport.zoom;
             this.api.ctx.setLineDash([4 / this.context.viewport.zoom, 4 / this.context.viewport.zoom]);

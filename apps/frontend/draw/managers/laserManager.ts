@@ -57,8 +57,9 @@ export class LaserManager {
     drawLaserPointer(ctx: CanvasRenderingContext2D) {
         if (!this.context.laserPosition) return;
         ctx.save();
-        ctx.translate(this.context.viewport.panX, this.context.viewport.panY);
+        // Correct transform order: scale by zoom FIRST, then translate by pan
         ctx.scale(this.context.viewport.zoom, this.context.viewport.zoom);
+        ctx.translate(this.context.viewport.panX, this.context.viewport.panY);
         const { x, y } = this.context.laserPosition;
         const size = this.context.laserSize;
 

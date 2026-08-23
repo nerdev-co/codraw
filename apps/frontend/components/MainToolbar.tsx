@@ -24,6 +24,8 @@ import {
     MoreHorizontal,
     SendToBack,
     Unlock,
+    ArrowUp,
+    ArrowDown,
 } from "lucide-react";
 import { IconButton } from "./IconButton";
 import { Tooltip } from "./Tooltip";
@@ -66,7 +68,7 @@ export function MainToolbar({
 
     return (
         <div className={`${ChromeSlots.topCenter} z-40 hidden md:block`}>
-            <div className={`flex items-center gap-1 px-2 py-2 ${SURFACE} shadow-lg dark:shadow-2xl animate-panel-in`}>
+            <div className={`flex items-center gap-1 px-2 py-2 ${SURFACE} animate-panel-in`}>
                 <Tooltip label={isLocked ? "Unlock canvas (Ctrl+L)" : "Lock canvas (Ctrl+L)"} side="bottom">
                     <IconButton
                         onClick={onToggleLock}
@@ -96,7 +98,26 @@ export function MainToolbar({
 
                 <span className="w-px h-5 bg-border dark:bg-border-dark mx-1" />
 
-                <Tooltip label="Bring to front" side="bottom">
+                <Tooltip label="Bring forward (Ctrl+])" side="bottom">
+                    <IconButton
+                        onClick={() => game?.bringForward()}
+                        activated={false}
+                        icon={<ArrowUp size={16} />}
+                        label="Bring forward"
+                    />
+                </Tooltip>
+                <Tooltip label="Send backward (Ctrl+[)" side="bottom">
+                    <IconButton
+                        onClick={() => game?.sendBackward()}
+                        activated={false}
+                        icon={<ArrowDown size={16} />}
+                        label="Send backward"
+                    />
+                </Tooltip>
+
+                <span className="w-px h-5 bg-border dark:bg-border-dark mx-1" />
+
+                <Tooltip label="Bring to front (Ctrl+Shift+])" side="bottom">
                     <IconButton
                         onClick={() => game?.bringToFront()}
                         activated={false}
@@ -104,7 +125,7 @@ export function MainToolbar({
                         label="Bring to front"
                     />
                 </Tooltip>
-                <Tooltip label="Send to back" side="bottom">
+                <Tooltip label="Send to back (Ctrl+Shift+[)" side="bottom">
                     <IconButton
                         onClick={() => game?.sendToBack()}
                         activated={false}

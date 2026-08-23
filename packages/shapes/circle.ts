@@ -10,7 +10,8 @@ import { ShapeStyle, Point, Bounds, defaultStyle } from "./types";
  * Circle shape variant.
  *
  * - `centerX`, `centerY` — center point in canvas coordinates
- * - `radius` — radius in canvas units
+ * - `radius` — radius in canvas units (used for perfect circles)
+ * - `radiusX`, `radiusY` — optional radii for ellipses (when both present, renders as ellipse)
  * - `style?` — optional per-shape visual style
  * - `groupId?` — grouping identifier
  * - `id?` — unique ID assigned on commit
@@ -24,8 +25,12 @@ export interface CircleShape {
     centerX: number;
     /** Center Y coordinate */
     centerY: number;
-    /** Radius in canvas units */
+    /** Radius in canvas units (for perfect circles) */
     radius: number;
+    /** Optional X radius for ellipses (when both radiusX and radiusY present, renders as ellipse) */
+    radiusX?: number;
+    /** Optional Y radius for ellipses (when both radiusX and radiusY present, renders as ellipse) */
+    radiusY?: number;
     /** Optional per-shape visual style */
     style?: ShapeStyle;
     /** Grouping identifier for multi-shape groups */
@@ -67,31 +72,34 @@ export function createCircle(
 }
 
 /**
- * Compute the bounding box for a circle.
+ * Compute the bounding box for a circle or ellipse.
  *
- * @param shape - The circle shape
+ * @param shape - The circle shape (may have radiusX/radiusY for ellipse)
  * @returns Bounding box in canvas coordinates
  */
 export function getCircleBounds(shape: CircleShape): Bounds {
-    const r = Math.abs(shape.radius);
+    const rx = shape.radiusX !== undefined ? Math.abs(shape.radiusX) : Math.abs(shape.radius);
+    const ry = shape.radiusY !== undefined ? Math.abs(shape.radiusY) : Math.abs(shape.radius);
     return {
-        x: shape.centerX - r,
-        y: shape.centerY - r,
-        w: r * 2,
-        h: r * 2,
+        x: shape.centerX - rx,
+        y: shape.centerY - ry,
+        w: rx * 2,
+        h: ry * 2,
     };
 }
 
 /**
- * Check whether a point lies inside or on the circle.
+ * Check whether a point lies inside or on the circle or ellipse.
  *
  * @param point - Test point [x, y]
- * @param shape - The circle shape
- * @returns `true` if the point is within the circle
+ * @param shape - The circle shape (may have radiusX/radiusY for ellipse)
+ * @returns `true` if the point is within the shape
  */
 export function hitTestCircle(point: Point, shape: CircleShape): boolean {
-    const dx = point[0] - shape.centerX;
-    const dy = point[1] - shape.centerY;
-    const r = Math.abs(shape.radius);
-    return dx * dx + dy * dy <= r * r;
+    const rx = shape.radiusX !== undefined ? Math.abs(shape.radiusX) : Math.abs(shape.radius);
+    const ry = shape.radiusY !== undefined ? Math.abs(shape.radiusY) : Math.abs(shape.radius);
+    if (rx === 0 || ry === 0) return false;
+    const nx = (point[0] - shape.centerX) / rx;
+    const ny = (point[1] - shape.centerY) / ry;
+    return nx * nx + ny * ny <= 1;
 }

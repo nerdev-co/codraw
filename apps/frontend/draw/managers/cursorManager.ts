@@ -159,8 +159,12 @@ export class CursorManager {
     drawRemoteCursors(ctx: CanvasRenderingContext2D) {
         if (this.remoteCursors.size === 0) return;
         ctx.save();
-        ctx.translate(this.context.viewport.panX, this.context.viewport.panY);
+        // Correct transform order: scale by zoom FIRST, then translate by pan.
+        // panX/panY are in screen/CSS pixels, not world coordinates.
+        // world -> screen: screen = world * zoom + pan
+        // Context with DPR: we need world * zoom + pan in CSS pixels
         ctx.scale(this.context.viewport.zoom, this.context.viewport.zoom);
+        ctx.translate(this.context.viewport.panX, this.context.viewport.panY);
         for (const cursor of this.remoteCursors.values()) {
             const size = 12 / this.context.viewport.zoom;
             const fontSize = 11 / this.context.viewport.zoom;

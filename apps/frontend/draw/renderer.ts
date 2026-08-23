@@ -23,13 +23,15 @@ import { IMAGE_PLACEHOLDER_BG, IMAGE_PLACEHOLDER_BORDER, IMAGE_PLACEHOLDER_TEXT,
  *
  * @param strokeWidth - Stroke width adjusted for current zoom level
  * @param st - Shape style containing colors, roughness, etc.
+ * @param isDark - Current theme for default color resolution
  * @returns Options object compatible with Rough.js drawing methods
  */
 export function buildRoughOpts(strokeWidth: number, st: ShapeStyle, isDark: boolean) {
+    const defaultSt = defaultStyle(isDark);
     return {
         stroke: resolveStrokeColor(st, isDark),
         strokeWidth,
-        roughness: st.roughness ?? 0,
+        roughness: st.roughness ?? defaultSt.roughness,
         bowing: 0,
         fill: st.backgroundColor !== "transparent" ? st.backgroundColor : undefined,
         fillStyle: st.backgroundColor !== "transparent" ? (st.fillStyle ?? "solid") : undefined,
@@ -82,7 +84,13 @@ export function renderShape(
             const h = Math.abs(shape.height);
             roughInstance.rectangle(x, y, w, h, opts);
         } else if (shape.type === "circle") {
-            roughInstance.circle(shape.centerX, shape.centerY, Math.abs(shape.radius) * 2, opts);
+            const rx = shape.radiusX !== undefined ? Math.abs(shape.radiusX) : Math.abs(shape.radius);
+            const ry = shape.radiusY !== undefined ? Math.abs(shape.radiusY) : Math.abs(shape.radius);
+            if (shape.radiusX !== undefined && shape.radiusY !== undefined) {
+                roughInstance.ellipse(shape.centerX, shape.centerY, rx * 2, ry * 2, opts);
+            } else {
+                roughInstance.circle(shape.centerX, shape.centerY, rx * 2, opts);
+            }
         } else if (shape.type === "ellipsisArc") {
             const rx = Math.abs(shape.width) / 2;
             const ry = Math.abs(shape.height) / 2;
@@ -264,6 +272,9 @@ export function renderShape(
  * overshoot — the signature feedback for a selection change. Static when
  * `anim` is null.
  *
+ * The primary selected shape (first in selection) gets an enhanced glow
+ * to distinguish it from overlapping unselected shapes.
+ *
  * @param ctx - Target canvas 2D context
  * @param shapes - All shapes on the canvas
  * @param selectedIds - Set of selected shape IDs
@@ -294,11 +305,15 @@ export function drawSelection(
         handleAlpha = t < 0.35 ? t / 0.35 : 1;
     }
     ctx.save();
-    ctx.translate(viewport.panX, viewport.panY);
+    // Correct transform order: scale by zoom FIRST, then translate by pan.
+    // panX/panY are in screen/CSS pixels, not world coordinates.
+    // world -> screen: screen = world * zoom + pan
     ctx.scale(viewport.zoom, viewport.zoom);
+    ctx.translate(viewport.panX, viewport.panY);
     const shapeMap = new Map(shapes.filter(s => s.id).map(s => [s.id!, s]));
     const handleSize = 6 / viewport.zoom;
-    const selectedShapes = [...selectedIds]
+    const selectedIdsArray = [...selectedIds];
+    const selectedShapes = selectedIdsArray
         .map((id) => shapeMap.get(id))
         .filter((s): s is Shape => Boolean(s));
 
@@ -318,6 +333,27 @@ export function drawSelection(
             ctx.scale(settleScale, settleScale);
             ctx.translate(-cx, -cy);
         }
+        // Primary selection glow (first selected shape)
+        const primaryId = selectedIdsArray[0];
+        const primaryShape = shapeMap.get(primaryId);
+        const primaryBounds = primaryShape ? getShapeBounds(primaryShape) : null;
+
+        // Draw enhanced glow for primary selection
+        if (primaryBounds) {
+            ctx.save();
+            ctx.shadowColor = pick(SELECTION_OUTLINE, isDark);
+            ctx.shadowBlur = 12 / viewport.zoom;
+            ctx.strokeStyle = pick(SELECTION_OUTLINE, isDark);
+            ctx.lineWidth = 2 / viewport.zoom;
+            ctx.strokeRect(
+                primaryBounds.x - 2 / viewport.zoom,
+                primaryBounds.y - 2 / viewport.zoom,
+                primaryBounds.w + 4 / viewport.zoom,
+                primaryBounds.h + 4 / viewport.zoom
+            );
+            ctx.restore();
+        }
+
         ctx.strokeStyle = pick(SELECTION_OUTLINE, isDark);
         ctx.lineWidth = 1 / viewport.zoom;
         ctx.shadowColor = pick(SELECTION_OUTLINE, isDark);
@@ -345,11 +381,13 @@ export function drawSelection(
         return;
     }
 
-    for (const id of selectedIds) {
+    for (let i = 0; i < selectedIdsArray.length; i++) {
+        const id = selectedIdsArray[i];
         const shape = shapeMap.get(id);
         if (!shape) continue;
         const bounds = getShapeBounds(shape);
         if (!bounds) continue;
+        const isPrimary = i === 0;
         ctx.save();
         if (settleScale !== 1) {
             const cx = bounds.x + bounds.w / 2;
@@ -358,6 +396,21 @@ export function drawSelection(
             ctx.scale(settleScale, settleScale);
             ctx.translate(-cx, -cy);
         }
+
+        // Enhanced glow for primary selected shape (especially useful for overlapping)
+        if (isPrimary) {
+            ctx.shadowColor = pick(SELECTION_OUTLINE, isDark);
+            ctx.shadowBlur = 12 / viewport.zoom;
+            ctx.strokeStyle = pick(SELECTION_OUTLINE, isDark);
+            ctx.lineWidth = 2 / viewport.zoom;
+            ctx.strokeRect(
+                bounds.x - 2 / viewport.zoom,
+                bounds.y - 2 / viewport.zoom,
+                bounds.w + 4 / viewport.zoom,
+                bounds.h + 4 / viewport.zoom
+            );
+        }
+
         ctx.strokeStyle = pick(SELECTION_OUTLINE, isDark);
         ctx.lineWidth = 1 / viewport.zoom;
         ctx.shadowColor = pick(SELECTION_OUTLINE, isDark);

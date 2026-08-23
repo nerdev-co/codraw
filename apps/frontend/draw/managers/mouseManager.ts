@@ -73,7 +73,7 @@ export class MouseManager {
         pointer.isDragging = false;
         pointer.clicked = false;
         if (wasPanning) return;
-        pointer.handlePointerUp(e);
+        pointer.handlePointerUp(e, e.shiftKey);
     };
 
     /** Handle mouse move — cursor broadcast, previews, panning, or drawing. */
