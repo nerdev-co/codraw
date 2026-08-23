@@ -211,11 +211,11 @@ export function ShortcutsPanel({
 
                 <div className="overflow-y-auto px-6 py-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-                        <ShortcutSectionBlock section={SECTIONS[0]} />
-                        <ShortcutSectionBlock section={SECTIONS[1]} />
+                        <ShortcutSectionBlock section={SECTIONS[0]!} />
+                        <ShortcutSectionBlock section={SECTIONS[1]!} />
                     </div>
                     <div className="mt-8 pt-6 border-t border-white/10">
-                        <ShortcutSectionBlock section={SECTIONS[2]} />
+                        <ShortcutSectionBlock section={SECTIONS[2]!} />
                     </div>
                 </div>
             </div>

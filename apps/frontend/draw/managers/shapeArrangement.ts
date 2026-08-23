@@ -60,8 +60,8 @@ export class ShapeArrangement {
         const prev = [...this.context.existingShapes];
         const shapes = this.context.existingShapes;
         for (let i = shapes.length - 2; i >= 0; i--) {
-            if (shapes[i].id && this.context.selectedIds.has(shapes[i].id!) && shapes[i + 1].id && !this.context.selectedIds.has(shapes[i + 1].id!)) {
-                [shapes[i], shapes[i + 1]] = [shapes[i + 1], shapes[i]];
+            if (shapes[i]!.id && this.context.selectedIds.has(shapes[i]!.id!) && shapes[i + 1]!.id && !this.context.selectedIds.has(shapes[i + 1]!.id!)) {
+                [shapes[i]!, shapes[i + 1]!] = [shapes[i + 1]!, shapes[i]!];
             }
         }
         this.context.undoManager.push(prev, this.context.existingShapes);
@@ -82,8 +82,8 @@ export class ShapeArrangement {
         const prev = [...this.context.existingShapes];
         const shapes = this.context.existingShapes;
         for (let i = 1; i < shapes.length; i++) {
-            if (shapes[i].id && this.context.selectedIds.has(shapes[i].id!) && shapes[i - 1].id && !this.context.selectedIds.has(shapes[i - 1].id!)) {
-                [shapes[i], shapes[i - 1]] = [shapes[i - 1], shapes[i]];
+            if (shapes[i]!.id && this.context.selectedIds.has(shapes[i]!.id!) && shapes[i - 1]!.id && !this.context.selectedIds.has(shapes[i - 1]!.id!)) {
+                [shapes[i]!, shapes[i - 1]!] = [shapes[i - 1]!, shapes[i]!];
             }
         }
         this.context.undoManager.push(prev, this.context.existingShapes);
@@ -250,10 +250,10 @@ export class ShapeArrangement {
         }
         if (selected.length < 3) return;
         selected.sort((a, b) => a.bounds.x - b.bounds.x);
-        const totalWidth = (selected[selected.length - 1].bounds.x + selected[selected.length - 1].bounds.w) - selected[0].bounds.x;
+        const totalWidth = (selected.at(-1)!.bounds.x + selected.at(-1)!.bounds.w) - selected[0]!.bounds.x;
         const totalShapesWidth = selected.reduce((sum, s) => sum + s.bounds.w, 0);
         const gap = (totalWidth - totalShapesWidth) / (selected.length - 1);
-        let currentX = selected[0].bounds.x;
+        let currentX = selected[0]!.bounds.x;
         for (const { shape, bounds } of selected) {
             const dx = currentX - bounds.x;
             translateShape(shape, dx, 0);
@@ -288,10 +288,10 @@ export class ShapeArrangement {
         }
         if (selected.length < 3) return;
         selected.sort((a, b) => a.bounds.y - b.bounds.y);
-        const totalHeight = (selected[selected.length - 1].bounds.y + selected[selected.length - 1].bounds.h) - selected[0].bounds.y;
+        const totalHeight = (selected.at(-1)!.bounds.y + selected.at(-1)!.bounds.h) - selected[0]!.bounds.y;
         const totalShapesHeight = selected.reduce((sum, s) => sum + s.bounds.h, 0);
         const gap = (totalHeight - totalShapesHeight) / (selected.length - 1);
-        let currentY = selected[0].bounds.y;
+        let currentY = selected[0]!.bounds.y;
         for (const { shape, bounds } of selected) {
             const dy = currentY - bounds.y;
             translateShape(shape, 0, dy);

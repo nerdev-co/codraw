@@ -103,7 +103,7 @@ export class ArrowManager {
                     { x: cx, y: bounds.y + bounds.h },
                     { x: bounds.x, y: cy },
                 ];
-                let best = edges[0];
+                let best = edges[0]!;
                 let bestDist = Infinity;
                 for (const e of edges) {
                     const d = Math.sqrt((s.startX - e.x) ** 2 + (s.startY - e.y) ** 2);
@@ -120,7 +120,7 @@ export class ArrowManager {
                     { x: cx, y: bounds.y + bounds.h },
                     { x: bounds.x, y: cy },
                 ];
-                let best = edges[0];
+                let best = edges[0]!;
                 let bestDist = Infinity;
                 for (const e of edges) {
                     const d = Math.sqrt((s.endX - e.x) ** 2 + (s.endY - e.y) ** 2);

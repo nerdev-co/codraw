@@ -113,9 +113,9 @@ export function renderShape(
         } else if (shape.type === "pencil") {
             if (shape.constantWidth && shape.points.length > 1) {
                 ctx.beginPath();
-                ctx.moveTo(shape.points[0][0], shape.points[0][1]);
+                ctx.moveTo(shape.points[0]![0], shape.points[0]![1]);
                 for (let j = 1; j < shape.points.length; j++) {
-                    ctx.lineTo(shape.points[j][0], shape.points[j][1]);
+                    ctx.lineTo(shape.points[j]![0], shape.points[j]![1]);
                 }
                 ctx.strokeStyle = resolveStrokeColor(st, isDark);
                 ctx.lineWidth = st.strokeWidth / zoom;
@@ -170,10 +170,10 @@ export function renderShape(
             ctx.fillStyle = resolveStrokeColor(st, isDark);
             ctx.textAlign = shape.textAlign || "left";
             ctx.textBaseline = "top";
-            const lines = shape.text.split("\n");
+            const lines = (shape.text || "").split("\n");
             const lineHeight = shape.fontSize * 1.25;
             for (let i = 0; i < lines.length; i++) {
-                ctx.fillText(lines[i], shape.x, shape.y + i * lineHeight);
+                ctx.fillText(lines[i]!, shape.x, shape.y + i * lineHeight);
             }
             ctx.textAlign = "start";
             ctx.textBaseline = "alphabetic";
@@ -212,9 +212,9 @@ export function renderShape(
             // Draw text
             ctx.fillStyle = STICKY_TEXT;
             ctx.font = "14px Arial";
-            const lines = shape.text.split("\n");
+            const lines = (shape.text || "").split("\n");
             for (let i = 0; i < lines.length; i++) {
-                ctx.fillText(lines[i], shape.x + 10, shape.y + 24 + i * 18);
+                ctx.fillText(lines[i]!, shape.x + 10, shape.y + 24 + i * 18);
             }
         } else if (shape.type === "eraser") {
             // Legacy eraser strokes are no longer rendered
@@ -334,7 +334,7 @@ export function drawSelection(
             ctx.translate(-cx, -cy);
         }
         // Primary selection glow (first selected shape)
-        const primaryId = selectedIdsArray[0];
+        const primaryId = selectedIdsArray[0]!;
         const primaryShape = shapeMap.get(primaryId);
         const primaryBounds = primaryShape ? getShapeBounds(primaryShape) : null;
 
@@ -382,7 +382,7 @@ export function drawSelection(
     }
 
     for (let i = 0; i < selectedIdsArray.length; i++) {
-        const id = selectedIdsArray[i];
+        const id = selectedIdsArray[i]!;
         const shape = shapeMap.get(id);
         if (!shape) continue;
         const bounds = getShapeBounds(shape);
@@ -560,7 +560,7 @@ export function hitTest(
             if (hitTestEllipsisArc(p, shape)) return idx;
         } else if (shape.type === "pencil") {
             for (let j = 1; j < shape.points.length; j++) {
-                const dist = distToSegment(p, shape.points[j - 1], shape.points[j]);
+                const dist = distToSegment(p, shape.points[j - 1]!, shape.points[j]!);
                 if (dist < 10 / zoom) return idx;
             }
         } else if (shape.type === "text") {
@@ -620,7 +620,7 @@ export function hitTest(
         } else if (shape.type === "arrow" || shape.type === "line") {
             if (shape.type === "line" && shape.points && shape.points.length > 2) {
                 for (let j = 1; j < shape.points.length; j++) {
-                    const dist = distToSegment(p, shape.points[j - 1], shape.points[j]);
+                    const dist = distToSegment(p, shape.points[j - 1]!, shape.points[j]!);
                     if (dist < 10 / zoom) return idx;
                 }
             } else if (shape.type === "arrow") {
@@ -635,7 +635,7 @@ export function hitTest(
             }
         } else if (shape.type === "eraser") {
             for (let j = 1; j < shape.points.length; j++) {
-                const dist = distToSegment(p, shape.points[j - 1], shape.points[j]);
+                const dist = distToSegment(p, shape.points[j - 1]!, shape.points[j]!);
                 if (dist < shape.strokeWidth / 2) return idx;
             }
         }
@@ -733,7 +733,7 @@ class SpatialIndex {
         this.cells.clear();
         this.shapeBounds = new Array(shapes.length);
         for (let i = 0; i < shapes.length; i++) {
-            const b = getShapeBounds(shapes[i]);
+            const b = getShapeBounds(shapes[i]!);
             this.shapeBounds[i] = b ?? { x: 0, y: 0, w: 0, h: 0 };
             const bounds = this.shapeBounds[i]!;
             const minCX = Math.floor(bounds.x / SPATIAL_CELL_SIZE);

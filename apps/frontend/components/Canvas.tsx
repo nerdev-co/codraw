@@ -140,13 +140,13 @@ export function Canvas({
                 if (cancelled || !gameRef.current) return;
                 const colors = [...CURSOR_PALETTE];
                 const colorIndex = data.userId ? hashCode(data.userId) % colors.length : Math.floor(Math.random() * colors.length);
-                const color = colors[colorIndex];
-                gameRef.current.setLocalUser(data.userId || getOrCreateGuestId(), data.name || getDisplayName() || "Anonymous", color);
+                const color = colors[colorIndex]!;
+                gameRef.current.setLocalUser(data.userId ?? getOrCreateGuestId(), data.name ?? getDisplayName() ?? "Anonymous", color);
             })
             .catch(() => {
                 if (cancelled || !gameRef.current) return;
                 const colors = [...CURSOR_PALETTE];
-                gameRef.current.setLocalUser(getOrCreateGuestId(), getDisplayName() || "Anonymous", colors[Math.floor(Math.random() * colors.length)]);
+                gameRef.current.setLocalUser(getOrCreateGuestId(), getDisplayName() ?? "Anonymous", colors[Math.floor(Math.random() * colors.length)]!);
             });
         return () => { cancelled = true; };
     }, [game]);
@@ -235,18 +235,18 @@ export function Canvas({
     const styleFallback = currentStyle;
     const selectionConsensus = <T,>(get: (s: Shape) => T | undefined): T | undefined => {
         if (selectedShapes.length === 0) return undefined;
-        const first = get(selectedShapes[0]);
+        const first = get(selectedShapes[0]!);
         return selectedShapes.every((s) => get(s) === first) ? first : undefined;
     };
 
     const allSameType =
         selectedShapes.length > 0 &&
-        selectedShapes.every((s) => s.type === selectedShapes[0].type);
+        selectedShapes.every((s) => s.type === selectedShapes[0]!.type);
     const panelShapeType =
         selectedShapes.length === 1
-            ? selectedShapes[0].type
+            ? selectedShapes[0]!.type
             : allSameType
-                ? selectedShapes[0].type
+                ? selectedShapes[0]!.type
                 : "multiple";
 
     const styleFields: (keyof ShapeStyle)[] = [

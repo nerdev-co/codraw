@@ -114,6 +114,7 @@ export function handleSelectPointerDown(
 
     if (hit !== null) {
         const hitShape = context.existingShapes[hit];
+        if (!hitShape) return;
 
         if (shiftKey) {
             if (context.selectedIds.has(hitShape.id!)) {
@@ -162,6 +163,7 @@ export function handleTextPointerDown(
     const hit = hitTest(coords, context.existingShapes, context.viewport.zoom);
     if (hit !== null) {
         const shape = context.existingShapes[hit];
+        if (!shape) return;
         if (shape.type === "text") {
             api.startTextEdit(shape.x, shape.y, shape.text, hit, {
                 bold: shape.bold,
@@ -203,6 +205,7 @@ export function handleEyedropperPointerDown(
     const hit = hitTest(coords, context.existingShapes, context.viewport.zoom);
     if (hit !== null) {
         const shape = context.existingShapes[hit];
+        if (!shape) return;
         if (shape.style?.strokeColor) {
             const resolved = resolveStrokeColor(shape.style, context.isDark);
             context.currentStyle = { ...context.currentStyle, strokeColor: resolved };
@@ -289,7 +292,7 @@ export function handleShapeToolPointerDown(
                 endBinding: endBind?.id,
             };
     } else if (context.selectedTool === "stickyNote") {
-        const noteColor = STICKY_NOTES[Math.floor(Math.random() * STICKY_NOTES.length)];
+        const noteColor = STICKY_NOTES[Math.floor(Math.random() * STICKY_NOTES.length)]!;
         state.drag.shape = {
             type: "stickyNote",
             x: Math.min(startX, coords[0]),
@@ -343,8 +346,8 @@ function hitTestSelectionHandles(coords: [number, number], bounds: Bounds, zoom:
     ];
     const handleSize = 8 / zoom;
     for (let i = 0; i < handles.length; i++) {
-        const dx = coords[0] - handles[i].x;
-        const dy = coords[1] - handles[i].y;
+        const dx = coords[0] - handles[i]!.x;
+        const dy = coords[1] - handles[i]!.y;
         if (dx * dx + dy * dy <= handleSize * handleSize) return i;
     }
     return -1;

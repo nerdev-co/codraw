@@ -30,8 +30,8 @@ export function SearchPanel({
         const results = game.searchShapes(q);
         setMatches(results);
         setCurrentIndex(0);
-        if (results.length > 0 && results[0].id) {
-            game.selectAndZoomTo(results[0].id);
+        if (results.length > 0 && results[0]!.id) {
+            game.selectAndZoomTo(results[0]!.id);
         }
     }, [game]);
 
@@ -39,8 +39,8 @@ export function SearchPanel({
         if (matches.length === 0) return;
         const next = (currentIndex + dir + matches.length) % matches.length;
         setCurrentIndex(next);
-        if (matches[next].id && game) {
-            game.selectAndZoomTo(matches[next].id!);
+        if (matches[next]!.id && game) {
+            game.selectAndZoomTo(matches[next]!.id!);
         }
     }, [matches, currentIndex, game]);
 

@@ -51,7 +51,7 @@ function parseNodeDef(
     let m: RegExpMatchArray | null;
 
     if ((m = rest.match(/^\(([^()]*)\)/))) {
-        const inner = m[1];
+        const inner = m[1]!;
         if (inner.startsWith("[") && inner.endsWith("]")) {
             shape = "stadium";
             label = inner.slice(1, -1);
@@ -62,15 +62,15 @@ function parseNodeDef(
         rest = rest.slice(m[0].length);
     } else if ((m = rest.match(/^\[\[([^\]]*)\]\]/))) {
         shape = "stadium";
-        label = m[1];
+        label = m[1]!;
         rest = rest.slice(m[0].length);
     } else if ((m = rest.match(/^\[([^\]]*)\]/))) {
         shape = "rect";
-        label = m[1];
+        label = m[1]!;
         rest = rest.slice(m[0].length);
     } else if ((m = rest.match(/^\{([^}]*)\}/))) {
         shape = "diamond";
-        label = m[1];
+        label = m[1]!;
         rest = rest.slice(m[0].length);
     }
 
@@ -98,13 +98,13 @@ export function parseMermaid(text: string): MermaidGraph {
         // graph direction header
         const header = line.match(/^(?:graph|flowchart)\s+(TD|LR|RL|BT)\b/i);
         if (header) {
-            direction = header[1].toUpperCase() as MermaidGraph["direction"];
+            direction = header[1]!.toUpperCase() as MermaidGraph["direction"];
             continue;
         }
 
         const nodeMatch = line.match(/^([A-Za-z0-9_]+)/);
         if (!nodeMatch) continue;
-        const id = nodeMatch[1];
+        const id = nodeMatch[1]!;
         let rest = line.slice(nodeMatch[0].length).trim();
 
         const def = parseNodeDef(id, rest);
@@ -121,16 +121,16 @@ export function parseMermaid(text: string): MermaidGraph {
             const [, type, label, to] = edge;
             edges.push({
                 from: id,
-                to,
+                to: to!,
                 label: label || undefined,
                 type: type === "-->" ? "arrow" : "line",
             });
 
             // The target may carry an inline shape definition
-            const targetDef = parseNodeDef(to, rest.slice(edge[0].length).trim());
-            if (!nodeMap.has(to)) {
-                const node: MermaidNode = { id: to, label: targetDef.label, shape: targetDef.shape, x: 0, y: 0 };
-                nodeMap.set(to, node);
+            const targetDef = parseNodeDef(to!, rest.slice(edge[0]!.length).trim());
+            if (!nodeMap.has(to!)) {
+                const node: MermaidNode = { id: to!, label: targetDef.label, shape: targetDef.shape, x: 0, y: 0 };
+                nodeMap.set(to!, node);
                 nodes.push(node);
             }
         }

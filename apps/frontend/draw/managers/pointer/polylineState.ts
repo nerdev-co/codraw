@@ -55,8 +55,8 @@ export function finishPolyline(
         state.isDrawingPolyline = false;
         return;
     }
-    const first = points[0];
-    const last = points[points.length - 1];
+    const first = points[0]!;
+    const last = points[points.length - 1]!;
     context.shapeManager.commitShape({
         type: "line",
         startX: first[0],

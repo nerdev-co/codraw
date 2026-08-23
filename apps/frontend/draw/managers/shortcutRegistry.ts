@@ -252,10 +252,10 @@ export function createShortcutRegistry(): Shortcut[] {
                     "8": "text",
                     "0": "eraser",
                 };
-                const tool = digitTools[e.key];
+                const tool = digitTools[e.key!];
                 if (tool === "image") {
                     api.insertImage();
-                } else {
+                } else if (tool) {
                     api.setTool(tool);
                 }
             },
@@ -921,7 +921,7 @@ export function createShortcutRegistry(): Shortcut[] {
                     api.setTool("rect");
                     return;
                 }
-                api.setTool(cycle[(idx + (e.shiftKey ? cycle.length - 1 : 1)) % cycle.length]);
+                api.setTool(cycle[(idx + (e.shiftKey ? cycle.length - 1 : 1)) % cycle.length]!);
             },
         },
         {

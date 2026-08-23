@@ -52,10 +52,10 @@ function computeBounds(shapes: Shape[]) {
     if (allX.length === 0) return null;
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     for (let i = 0; i < allX.length; i++) {
-        if (allX[i] < minX) minX = allX[i];
-        if (allX[i] > maxX) maxX = allX[i];
-        if (allY[i] < minY) minY = allY[i];
-        if (allY[i] > maxY) maxY = allY[i];
+        if (allX[i]! < minX) minX = allX[i]!;
+        if (allX[i]! > maxX) maxX = allX[i]!;
+        if (allY[i]! < minY) minY = allY[i]!;
+        if (allY[i]! > maxY) maxY = allY[i]!;
     }
     const pad = 20;
     return {
@@ -220,7 +220,7 @@ export function exportToSvg(shapes: Shape[], isDark: boolean) {
                 const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
                 tspan.setAttribute("x", String(shape.x));
                 tspan.setAttribute("dy", i === 0 ? "0" : String(shape.fontSize * 1.25));
-                tspan.textContent = lines[i];
+                tspan.textContent = lines[i]!;
                 el.appendChild(tspan);
             }
             svgEl.appendChild(el);
@@ -259,7 +259,7 @@ export function exportToSvg(shapes: Shape[], isDark: boolean) {
                 el.setAttribute("font-family", "Arial");
                 el.setAttribute("font-size", "14");
                 el.setAttribute("fill", STICKY_TEXT);
-                el.textContent = lines[i];
+                el.textContent = lines[i]!;
                 svgEl.appendChild(el);
             }
         } else if (shape.type === "frame") {

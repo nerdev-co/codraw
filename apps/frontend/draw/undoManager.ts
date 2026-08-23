@@ -43,7 +43,7 @@ function styleEqual(a: ShapeStyle | undefined, b: ShapeStyle | undefined): boole
 function pointsEqual(a: [number, number][], b: [number, number][]): boolean {
     if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) {
-        if (a[i][0] !== b[i][0] || a[i][1] !== b[i][1]) return false;
+        if (a[i]![0] !== b[i]![0] || a[i]![1] !== b[i]![1]) return false;
     }
     return true;
 }
@@ -99,7 +99,7 @@ export function shapesEqual(a: Shape, b: Shape): boolean {
             const l = b as typeof a;
             if (a.points && l.points) {
                 if (a.points.length !== l.points.length) return false;
-                return a.points.every((p, i) => p[0] === l.points![i][0] && p[1] === l.points![i][1]);
+                return a.points.every((p, i) => p[0] === l.points![i]![0] && p[1] === l.points![i]![1]);
             }
             return a.startX === l.startX && a.startY === l.startY && a.endX === l.endX && a.endY === l.endY;
         }

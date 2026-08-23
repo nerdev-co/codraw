@@ -61,6 +61,7 @@ export class ImageManager {
     startImageCrop() {
         if (this.context.selectedIds.size !== 1) return;
         const id = [...this.context.selectedIds][0];
+        if (!id) return;
         const shape = this.shapeById(id);
         if (!shape || shape.type !== "image") return;
         const bounds = getShapeBounds(shape);

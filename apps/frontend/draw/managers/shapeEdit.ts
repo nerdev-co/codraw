@@ -20,6 +20,7 @@ export interface ShapeEditApi {
  */
 export function openShapeEditor(context: GameContext, hit: number, api: ShapeEditApi): void {
     const shape = context.existingShapes[hit];
+    if (!shape) return;
 
     if (shape.type === "text") {
         api.startTextEdit(shape.x, shape.y, shape.text, hit, {

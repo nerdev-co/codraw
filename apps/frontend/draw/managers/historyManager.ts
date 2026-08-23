@@ -123,7 +123,7 @@ export class HistoryManager {
     restoreFromTrash(id: string) {
         const idx = this.context.trash.findIndex((s) => s.id === id);
         if (idx === -1) return;
-        const shape = this.context.trash[idx];
+        const shape = this.context.trash[idx]!;
         const prev = [...this.context.existingShapes];
         this.context.existingShapes.push(structuredClone(shape));
         this.context.trash.splice(idx, 1);

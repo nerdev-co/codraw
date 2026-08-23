@@ -100,6 +100,7 @@ export class ShapeStyleManager {
     private getSelectedShape(): Shape | null {
         if (this.context.selectedIds.size === 0) return null;
         const first = [...this.context.selectedIds][0];
+        if (!first) return null;
         return shapeById(this.context, first) ?? null;
     }
 

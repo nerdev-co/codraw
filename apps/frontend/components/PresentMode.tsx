@@ -46,6 +46,7 @@ export function PresentMode({
         if (!ctx) return;
 
         const frame = slides[currentIndex];
+        if (!frame) return;
         const vp = game.getSlideViewport(frame, canvas.width, canvas.height);
 
         // Get shapes inside the frame bounds

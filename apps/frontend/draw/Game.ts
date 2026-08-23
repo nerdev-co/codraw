@@ -599,6 +599,7 @@ export class Game {
     getSelectedShape(): Shape | null {
         if (this.context.selectedIds.size === 0) return null;
         const first = [...this.context.selectedIds][0];
+        if (!first) return null;
         return this.shapeById(first) ?? null;
     }
 
@@ -1273,7 +1274,7 @@ export class Game {
             this.setTool("rect");
             return;
         }
-        this.setTool(cycle[(idx + (forward ? 1 : cycle.length - 1)) % cycle.length]);
+        this.setTool(cycle[(idx + (forward ? 1 : cycle.length - 1)) % cycle.length]!);
     }
 
     /**

@@ -282,7 +282,7 @@ function createSprayPaintPlugin(): Plugin {
                 const px = x + Math.cos(angle) * radius;
                 const py = y + Math.sin(angle) * radius;
                 const colors = [...CURSOR_PALETTE.slice(0, 8)];
-                const color = colors[Math.floor(Math.random() * colors.length)];
+                const color = colors[Math.floor(Math.random() * colors.length)]!;
                 game.commitShape({
                     type: "rect",
                     x: px,
@@ -319,8 +319,8 @@ function createStickyNotePlugin(): Plugin {
             const game = ctx.game;
             const notes = ["TODO", "FIXME", "NOTE", "IDEA", "REVIEW"];
             const colors = [...STICKY_NOTES];
-            const note = notes[Math.floor(Math.random() * notes.length)];
-            const color = colors[Math.floor(Math.random() * colors.length)];
+            const note = notes[Math.floor(Math.random() * notes.length)]!;
+            const color = colors[Math.floor(Math.random() * colors.length)]!;
             game.commitShape({
                 type: "stickyNote",
                 x,

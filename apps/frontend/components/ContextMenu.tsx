@@ -169,7 +169,7 @@ export function buildContextMenuItems(
     const allGrouped = count > 0 && selected.every(s => s.groupId);
     const anyLinked = count > 0 && selected.some(s => !!s.url);
     const allLinked = count > 0 && selected.every(s => !!s.url);
-    const singleImage = count === 1 && selected[0].type === "image";
+    const singleImage = count === 1 && selected[0]!.type === "image";
 
     return [
         {
@@ -257,7 +257,7 @@ export function buildContextMenuItems(
             shortcut: "",
             action: () => {
                 const linked = game.getSelectedShapes().filter(s => s.url);
-                if (linked.length > 0) window.open(linked[0].url, "_blank", "noopener,noreferrer");
+                if (linked.length > 0) window.open(linked[0]!.url, "_blank", "noopener,noreferrer");
             },
             disabled: !anyLinked,
         },

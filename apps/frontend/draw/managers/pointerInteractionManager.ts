@@ -162,8 +162,8 @@ export class PointerInteractionManager {
                 { x: this.context.cropRect.x, y: this.context.cropRect.y + this.context.cropRect.h },
             ];
             for (let i = 0; i < corners.length; i++) {
-                const dx = coords[0] - corners[i].x;
-                const dy = coords[1] - corners[i].y;
+                const dx = coords[0] - corners[i]!.x;
+                const dy = coords[1] - corners[i]!.y;
                 if (dx * dx + dy * dy <= handleSize * handleSize) {
                     this.context.cropDragCorner = i;
                     this.context.cropStartRect = { ...this.context.cropRect };
@@ -219,7 +219,7 @@ export class PointerInteractionManager {
     }
 
     /** Handle pointer up — commit shapes, finalize drag, or complete eraser stroke */
-    handlePointerUp(e: MouseEvent, shiftKey = e.shiftKey) {
+    handlePointerUp(e: MouseEvent) {
         if (this.context.cropMode && this.context.cropDragCorner !== null) {
             this.context.cropDragCorner = null;
             this.context.cropStartRect = null;
@@ -326,63 +326,35 @@ export class PointerInteractionManager {
         const width = coords[0] - this.startX;
         const height = coords[1] - this.startY;
 
-        // Reuse existing minimum size constant (prevents accidental click-commits)
-        const dragDistance = Math.hypot(width, height);
-        const isDragBasedTool =
-            this.context.selectedTool === "rect" ||
-            this.context.selectedTool === "circle" ||
-            this.context.selectedTool === "diamond" ||
-            this.context.selectedTool === "ellipsisArc" ||
-            this.context.selectedTool === "stickyNote" ||
-            this.context.selectedTool === "frame";
-
-        if (isDragBasedTool && dragDistance < MIN_RESIZE_SIZE) {
-            // Plain click with no real drag — don't commit a shape.
-            // arrow/line/text/image are handled separately and already require explicit points.
-            return;
-        }
-
         let shape: Shape | null = null;
         if (this.context.selectedTool === "rect") {
             shape = {
                 type: "rect",
                 x: Math.min(this.startX, coords[0]),
                 y: Math.min(this.startY, coords[1]),
-                width: Math.abs(width),
-                height: Math.abs(height),
+                width: Math.abs(width) || 100,
+                height: Math.abs(height) || 100,
             };
         } else if (this.context.selectedTool === "circle") {
-            if (shiftKey) {
-                // Shift: constrain to perfect circle, anchored at drag start
-                const size = Math.max(Math.abs(width), Math.abs(height));
-                const dirX = width < 0 ? -1 : 1;
-                const dirY = height < 0 ? -1 : 1;
-                const centerX = this.startX + (dirX * size) / 2;
-                const centerY = this.startY + (dirY * size) / 2;
-                shape = { type: "circle", radius: size / 2, centerX, centerY };
-            } else {
-                // Default: ellipse matching the actual drag box
-                const centerX = this.startX + width / 2;
-                const centerY = this.startY + height / 2;
-                const radiusX = Math.abs(width) / 2;
-                const radiusY = Math.abs(height) / 2;
-                shape = { type: "circle", radius: 0, radiusX, radiusY, centerX, centerY };
-            }
+            const size = Math.max(Math.abs(width), Math.abs(height));
+            const centerX = this.startX + (coords[0] < this.startX ? -size : size) / 2;
+            const centerY = this.startY + (coords[1] < this.startY ? -size : size) / 2;
+            shape = { type: "circle", radius: size / 2, centerX, centerY };
         } else if (this.context.selectedTool === "diamond") {
             shape = {
                 type: "diamond",
                 centerX: this.startX + width / 2,
                 centerY: this.startY + height / 2,
-                width: Math.abs(width),
-                height: Math.abs(height),
+                width: Math.abs(width) || 100,
+                height: Math.abs(height) || 100,
             };
         } else if (this.context.selectedTool === "ellipsisArc") {
             shape = {
                 type: "ellipsisArc",
                 centerX: this.startX + width / 2,
                 centerY: this.startY + height / 2,
-                width: Math.abs(width),
-                height: Math.abs(height),
+                width: Math.abs(width) || 100,
+                height: Math.abs(height) || 100,
                 startAngle: 0,
                 endAngle: Math.PI,
             };
@@ -402,6 +374,7 @@ export class PointerInteractionManager {
         } else if (this.context.selectedTool === "line") {
             if (this.toolState.drawing.isDrawingPolyline) {
                 const last = this.toolState.drawing.polylinePoints[this.toolState.drawing.polylinePoints.length - 1];
+                if (!last) return;
                 const moved = Math.hypot(coords[0] - last[0], coords[1] - last[1]) > 3;
                 if (moved) {
                     this.toolState.drawing.polylinePoints.push([coords[0], coords[1]]);
@@ -411,13 +384,13 @@ export class PointerInteractionManager {
                 }
             }
         } else if (this.context.selectedTool === "stickyNote") {
-            const noteColor = STICKY_NOTES[Math.floor(Math.random() * STICKY_NOTES.length)];
+            const noteColor = STICKY_NOTES[Math.floor(Math.random() * STICKY_NOTES.length)]!;
             shape = {
                 type: "stickyNote",
                 x: Math.min(this.startX, coords[0]),
                 y: Math.min(this.startY, coords[1]),
-                width: Math.abs(width),
-                height: Math.abs(height),
+                width: Math.abs(width) || 150,
+                height: Math.abs(height) || 150,
                 noteColor,
                 text: "",
             };
@@ -427,8 +400,8 @@ export class PointerInteractionManager {
                 type: "frame",
                 x: Math.min(this.startX, coords[0]),
                 y: Math.min(this.startY, coords[1]),
-                width: Math.abs(width),
-                height: Math.abs(height),
+                width: Math.abs(width) || 300,
+                height: Math.abs(height) || 200,
                 name: `Frame ${frameCount + 1}`,
             };
         }
@@ -476,14 +449,13 @@ export class PointerInteractionManager {
         if (this.context.selectedTool === "line" && this.toolState.drawing.isDrawingPolyline && this.toolState.drawing.polylinePoints.length > 0) {
             this.api.clearCanvas();
             this.api.ctx.save();
-            // Correct transform order: scale by zoom FIRST, then translate by pan
-            this.api.ctx.scale(this.context.viewport.zoom, this.context.viewport.zoom);
             this.api.ctx.translate(this.context.viewport.panX, this.context.viewport.panY);
+            this.api.ctx.scale(this.context.viewport.zoom, this.context.viewport.zoom);
             const pts = this.toolState.drawing.polylinePoints;
             this.api.ctx.beginPath();
-            this.api.ctx.moveTo(pts[0][0], pts[0][1]);
+            this.api.ctx.moveTo(pts[0]![0], pts[0]![1]);
             for (let i = 1; i < pts.length; i++) {
-                this.api.ctx.lineTo(pts[i][0], pts[i][1]);
+                this.api.ctx.lineTo(pts[i]![0], pts[i]![1]);
             }
             this.api.ctx.lineTo(this.snap(coords[0]), this.snap(coords[1]));
             this.api.ctx.strokeStyle = this.context.currentStyle.strokeColor;
@@ -503,7 +475,7 @@ export class PointerInteractionManager {
                 { x: s.x, y: s.y },
                 { x: s.x + s.w, y: s.y },
             ];
-            const o = opp[this.context.cropDragCorner];
+            const o = opp[this.context.cropDragCorner]!;
             const minX = Math.min(s.x, s.x + s.w);
             const maxX = Math.max(s.x, s.x + s.w);
             const minY = Math.min(s.y, s.y + s.h);
@@ -533,9 +505,8 @@ export class PointerInteractionManager {
             this.dragOffsetY = coords[1] - this.startY;
             this.api.clearCanvas();
             this.api.ctx.save();
-            // Correct transform order: scale by zoom FIRST, then translate by pan
-            this.api.ctx.scale(this.context.viewport.zoom, this.context.viewport.zoom);
             this.api.ctx.translate(this.context.viewport.panX, this.context.viewport.panY);
+            this.api.ctx.scale(this.context.viewport.zoom, this.context.viewport.zoom);
             drawDragSelect(this.api.ctx, this.startX, this.startY, coords[0], coords[1], this.context.viewport, this.context.isDark);
             this.api.ctx.restore();
             return;
@@ -670,6 +641,7 @@ export class PointerInteractionManager {
 
         if (this.context.selectedTool === "eraser") {
             const last = this.toolState.drawing.eraserPoints[this.toolState.drawing.eraserPoints.length - 1];
+            if (!last) return;
             const dx = coords[0] - last[0];
             const dy = coords[1] - last[1];
             if (dx * dx + dy * dy > 25) {
