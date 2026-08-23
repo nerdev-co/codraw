@@ -326,14 +326,31 @@ export class PointerInteractionManager {
         const width = coords[0] - this.startX;
         const height = coords[1] - this.startY;
 
+        // Minimum drag distance to commit a shape (prevents accidental click-commits)
+        const MIN_DRAG_DISTANCE = 5;
+        const dragDistance = Math.hypot(width, height);
+        const isDragBasedTool =
+            this.context.selectedTool === "rect" ||
+            this.context.selectedTool === "circle" ||
+            this.context.selectedTool === "diamond" ||
+            this.context.selectedTool === "ellipsisArc" ||
+            this.context.selectedTool === "stickyNote" ||
+            this.context.selectedTool === "frame";
+
+        if (isDragBasedTool && dragDistance < MIN_DRAG_DISTANCE) {
+            // Plain click with no real drag — don't commit a shape.
+            // arrow/line/text/image are handled separately and already require explicit points.
+            return;
+        }
+
         let shape: Shape | null = null;
         if (this.context.selectedTool === "rect") {
             shape = {
                 type: "rect",
                 x: Math.min(this.startX, coords[0]),
                 y: Math.min(this.startY, coords[1]),
-                width: Math.abs(width) || 100,
-                height: Math.abs(height) || 100,
+                width: Math.abs(width),
+                height: Math.abs(height),
             };
         } else if (this.context.selectedTool === "circle") {
             if (shiftKey) {
@@ -348,8 +365,8 @@ export class PointerInteractionManager {
                 // Default: ellipse matching the actual drag box
                 const centerX = this.startX + width / 2;
                 const centerY = this.startY + height / 2;
-                const radiusX = Math.abs(width) / 2 || 50;
-                const radiusY = Math.abs(height) / 2 || 50;
+                const radiusX = Math.abs(width) / 2;
+                const radiusY = Math.abs(height) / 2;
                 shape = { type: "circle", radius: 0, radiusX, radiusY, centerX, centerY };
             }
         } else if (this.context.selectedTool === "diamond") {
@@ -357,16 +374,16 @@ export class PointerInteractionManager {
                 type: "diamond",
                 centerX: this.startX + width / 2,
                 centerY: this.startY + height / 2,
-                width: Math.abs(width) || 100,
-                height: Math.abs(height) || 100,
+                width: Math.abs(width),
+                height: Math.abs(height),
             };
         } else if (this.context.selectedTool === "ellipsisArc") {
             shape = {
                 type: "ellipsisArc",
                 centerX: this.startX + width / 2,
                 centerY: this.startY + height / 2,
-                width: Math.abs(width) || 100,
-                height: Math.abs(height) || 100,
+                width: Math.abs(width),
+                height: Math.abs(height),
                 startAngle: 0,
                 endAngle: Math.PI,
             };
@@ -400,8 +417,8 @@ export class PointerInteractionManager {
                 type: "stickyNote",
                 x: Math.min(this.startX, coords[0]),
                 y: Math.min(this.startY, coords[1]),
-                width: Math.abs(width) || 150,
-                height: Math.abs(height) || 150,
+                width: Math.abs(width),
+                height: Math.abs(height),
                 noteColor,
                 text: "",
             };
@@ -411,8 +428,8 @@ export class PointerInteractionManager {
                 type: "frame",
                 x: Math.min(this.startX, coords[0]),
                 y: Math.min(this.startY, coords[1]),
-                width: Math.abs(width) || 300,
-                height: Math.abs(height) || 200,
+                width: Math.abs(width),
+                height: Math.abs(height),
                 name: `Frame ${frameCount + 1}`,
             };
         }
