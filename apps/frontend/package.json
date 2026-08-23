@@ -11,10 +11,11 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@repo/ui": "workspace:*",
     "@repo/shapes": "workspace:*",
+    "@repo/ui": "workspace:*",
     "@tanstack/react-router": "^1.58.0",
     "axios": "^1.7.0",
+    "framer-motion": "^13.1.1",
     "lucide-react": "^0.473.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -16,6 +16,9 @@ import { HeroBoard } from "@/components/HeroBoard";
 import { RoomList } from "@/components/RoomList";
 import { SignOutButton } from "@/components/SignOutButton";
 import { OpenCanvasButton } from "@/components/OpenCanvasButton";
+import { SpotlightCard } from "@/components/SpotlightCard";
+import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 
 function A({ to, children, ...rest }: { to: string; children: React.ReactNode } & Record<string, unknown>) {
   return (
@@ -34,6 +37,19 @@ export const Route = createRoute({
 function Index() {
   const { me, loading } = useAuth();
   const navigate = useNavigate();
+  const mainRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main || reduceMotion) return;
+    const onScroll = () => {
+      const y = main.scrollTop;
+      main.style.backgroundPosition = `0px ${y * 0.08}px`;
+    };
+    main.addEventListener("scroll", onScroll, { passive: true });
+    return () => main.removeEventListener("scroll", onScroll);
+  }, [reduceMotion]);
 
   if (loading) {
     return (
@@ -44,7 +60,10 @@ function Index() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas dark:bg-canvas-dark">
+    <div
+      ref={mainRef}
+      className="min-h-screen bg-canvas dark:bg-canvas-dark overflow-y-auto bg-[radial-gradient(circle,#eceef1_1px,transparent_1px)] dark:bg-[radial-gradient(circle,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:24px_24px]"
+    >
       {/* Nav */}
       <nav className="border-b border-border dark:border-border-dark">
         <div className="container flex items-center justify-between px-4 py-3.5 mx-auto sm:px-6 lg:px-8">
@@ -67,7 +86,7 @@ function Index() {
               </span>
             )}
             <a
-              href="https://github.com/NalinDalal/codraw"
+              href="https://github.com/nerdev-co/codraw"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 text-muted-foreground dark:text-muted-foreground-dark rounded transition-colors duration-fast hover:text-foreground dark:hover:text-foreground-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -81,7 +100,7 @@ function Index() {
       </nav>
 
       {/* Hero */}
-      <header className="overflow-hidden border-b border-border dark:border-border-dark bg-[radial-gradient(circle,#eceef1_1px,transparent_1px)] dark:bg-[radial-gradient(circle,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:24px_24px]">
+      <header className="overflow-hidden border-b border-border dark:border-border-dark">
         <div className="container px-4 py-16 mx-auto sm:px-6 lg:px-8 sm:py-20">
           <div className="max-w-3xl mx-auto text-center">
             {me ? (
@@ -163,29 +182,58 @@ function Index() {
       <section className="py-20 sm:py-24">
         <div className="container px-4 mx-auto sm:px-6 lg:px-8">
           <SectionKicker>features</SectionKicker>
-          <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-tight sm:text-4xl">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="mt-3 max-w-xl text-3xl font-bold tracking-tight sm:text-4xl"
+          >
             Everything you need to draw together
-          </h2>
-          <div className="grid grid-cols-1 gap-4 mt-12 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map((f) => (
-              <div
-                key={f.title}
-                className="p-5 border border-border dark:border-border-dark rounded-lg bg-card dark:bg-card-dark transition-[border-color,transform] duration-fast ease-spring hover:border-primary hover:-translate-y-0.5"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center justify-center w-10 h-10 border border-border dark:border-border-dark rounded-md bg-muted dark:bg-muted-dark">
-                    <f.icon className="w-5 h-5 text-primary dark:text-highlight-dark" />
-                  </div>
-                  <span className="font-mono text-xs text-muted-foreground dark:text-muted-foreground-dark">
-                    {f.index}
-                  </span>
-                </div>
-                <h3 className="mt-4 font-semibold text-foreground dark:text-foreground-dark">{f.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground dark:text-muted-foreground-dark">
-                  {f.body}
-                </p>
-              </div>
-            ))}
+          </motion.h2>
+          <div className="grid grid-cols-1 gap-4 mt-12 sm:grid-cols-2 lg:grid-cols-12 auto-rows-[minmax(180px,auto)]">
+            {FEATURES.map((f, i) => {
+              const isLarge = i === 0 || i === 3;
+              const isTall = i === 1;
+              return (
+                <motion.div
+                  key={f.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.5, delay: i * 0.08, ease: "easeOut" }}
+                  className={[
+                    "group relative",
+                    isLarge ? "lg:col-span-6" : isTall ? "lg:col-span-4 lg:row-span-2" : "lg:col-span-4",
+                  ].join(" ")}
+                >
+                  <SpotlightCard className="h-full">
+                    <div className="flex items-start justify-between p-6">
+                      <motion.div
+                        initial={{ scale: 0.8 }}
+                        whileInView={{ scale: 1 }}
+                        viewport={{ once: true, margin: "-40px" }}
+                        transition={{ duration: 0.35, delay: i * 0.08 + 0.1, ease: [0.34, 1.56, 0.64, 1] }}
+                        className="flex items-center justify-center w-10 h-10 border border-border dark:border-border-dark rounded-lg bg-muted dark:bg-muted-dark shrink-0"
+                      >
+                        <f.icon className="w-5 h-5 text-primary dark:text-highlight-dark" />
+                      </motion.div>
+                      <span className="font-mono text-xs text-muted-foreground dark:text-muted-foreground-dark">
+                        {f.index}
+                      </span>
+                    </div>
+                    <div className="px-6 pb-6">
+                      <h3 className="text-lg font-semibold text-foreground dark:text-foreground-dark">
+                        {f.title}
+                      </h3>
+                      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground dark:text-muted-foreground-dark">
+                        {f.body}
+                      </p>
+                    </div>
+                  </SpotlightCard>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>

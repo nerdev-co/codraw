@@ -18,6 +18,7 @@
 "use client";
 
 import { ReactNode, useEffect, useRef, useState, type ComponentProps, type RefObject } from "react";
+import { motion } from "framer-motion";
 
 /**
  * Floating cluster surface — small chrome (toolbars, zoom, history).
@@ -133,29 +134,38 @@ export function Button({
     onClick,
     disabled,
     children,
+    ...rest
 }: {
     variant?: "primary" | "secondary" | "ghost" | "danger";
     className?: string;
     onClick?: () => void;
     disabled?: boolean;
     children: ReactNode;
-}) {
+} & Record<string, unknown>) {
+    const base =
+        "inline-flex items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-[transform,background-color,color,border-color,opacity] duration-fast ease-spring cursor-pointer active:scale-[0.97] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:opacity-40 disabled:cursor-not-allowed";
+    const variantClass =
+        variant === "primary"
+            ? "bg-primary text-primary-foreground hover:bg-accent-hover dark:hover:bg-accent-hover-dark"
+            : variant === "danger"
+                ? "text-danger dark:text-danger-dark hover:bg-danger/10 dark:hover:bg-danger-dark/10"
+                : variant === "secondary"
+                    ? "text-text-secondary dark:text-text-secondary-dark border border-border dark:border-border-dark hover:bg-hover dark:hover:bg-hover-dark active:bg-active dark:active:bg-active-dark"
+                    : "text-text-secondary dark:text-text-secondary-dark hover:bg-hover dark:hover:bg-hover-dark active:bg-active dark:active:bg-active-dark";
+
     return (
-        <button
+        <motion.button
             type="button"
             onClick={onClick}
             disabled={disabled}
-            className={`h-7 px-2.5 inline-flex items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-[transform,background-color,color,border-color,opacity] duration-fast ease-spring cursor-pointer active:scale-[0.97] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:opacity-40 disabled:cursor-not-allowed ${variant === "primary"
-                ? "bg-primary text-primary-foreground hover:bg-accent-hover dark:hover:bg-accent-hover-dark"
-                : variant === "danger"
-                    ? "text-danger dark:text-danger-dark hover:bg-danger/10 dark:hover:bg-danger-dark/10"
-                    : variant === "secondary"
-                        ? "text-text-secondary dark:text-text-secondary-dark border border-border dark:border-border-dark hover:bg-hover dark:hover:bg-hover-dark active:bg-active dark:active:bg-active-dark"
-                        : "text-text-secondary dark:text-text-secondary-dark hover:bg-hover dark:hover:bg-hover-dark active:bg-active dark:active:bg-active-dark"
-                } ${className}`}
+            className={`${base} ${variantClass} ${className}`}
+            whileHover={disabled ? {} : { scale: 1.03, y: -1 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 22 }}
+            {...rest}
         >
             {children}
-        </button>
+        </motion.button>
     );
 }
 

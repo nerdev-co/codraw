@@ -418,7 +418,7 @@ export class Game {
         this.context.autoSaveManager.disableAutoSave();
         this.context.webSocketSyncManager.destroy();
         this.context.mouseManager.destroy(this.canvas);
-        this.context.touchManager.destroy(this.canvas);
+        this.context.touchManager?.destroy(this.canvas);
         this.context.keyboardManager.destroy();
         this.context.cursorManager.destroy();
         this.context.clipboardManager.destroy(this.canvas);
