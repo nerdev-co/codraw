@@ -1,8 +1,8 @@
 # CoDraw
 
-A real-time collaborative whiteboard — think self-hostable Excalidraw with room-based drawing, auth, and persistence. Built as a Turborepo monorepo with a Next.js frontend, a Bun HTTP API, and a separate Bun WebSocket server.
+A real-time collaborative whiteboard — think self-hostable Excalidraw with room-based drawing, auth, and persistence. Built as a Turborepo monorepo with a **Vite + TanStack Router** frontend, a **Bun HTTP API**, and a separate **Bun WebSocket server**.
 
-**Live:** [codraw.nerdev.in](codraw.nerdev.in) · **Source:** [github](https://github.com/nerdev-co/codraw/tree/main)
+**Live:** [codraw.nerdev.in](https://codraw.nerdev.in) · **Source:** [github](https://github.com/nerdev-co/codraw)
 
 ---
 
@@ -21,10 +21,10 @@ Most collaborative whiteboards either give up the hand-drawn Rough.js aesthetic 
         │                      │
    ┌────▼────┐           ┌────▼────┐
    │ Frontend│           │   HTTP  │
-   │ Next.js │           │ Backend │
-   │ :3000   │           │ :3001   │
-   └────┬────┘           └────┬────┘
-        │                     │
+   │ Vite+   │           │ Backend │
+   │ TanStack│           │ :3001   │
+   │ :5173   │           └────┬────┘
+   └────┬────┘                │
         │              ┌──────▼──────────┐
         │              │  PostgreSQL     │
         │              │  (Neon)         │
@@ -38,11 +38,58 @@ Most collaborative whiteboards either give up the hand-drawn Rough.js aesthetic 
 
 Three independent services behind Nginx:
 
-- **Frontend** (`apps/frontend`) — Next.js 15 / React 19. Canvas rendering with Rough.js, local state management, WebSocket client, auto-save, export.
-- **HTTP Backend** (`apps/http-backend`) — Bun + native Web API. Auth, room CRUD, session management, shape persistence with optimistic concurrency.
-- **WebSocket Backend** (`apps/ws-backend`) — Bun + WebSocket server. Real-time shape diff broadcasting, cursor sync, chat, room management.
+- **Frontend** (`apps/frontend`) — **Vite + TanStack Router + React 19**. Canvas rendering with Rough.js, local state management, WebSocket client, auto-save, export. Type-safe file-based routing via `src/routes/`.
+- **HTTP Backend** (`apps/http-backend`) — **Bun + native Web API**. Auth, room CRUD, session management, shape persistence with optimistic concurrency.
+- **WebSocket Backend** (`apps/ws-backend`) — **Bun + WebSocket server**. Real-time shape diff broadcasting, cursor sync, chat, room management.
 
-All three run under **PM2** on a single EC2 instance (t3.small), with Neon providing managed PostgreSQL. CI/CD is a two-stage GitHub Actions pipeline: CI runs typecheck, build on every PR and push to main; on success, the deploy workflow ships the prebuilt Next.js `.next/` artifact to EC2 via `scp`, pulls latest source, installs deps, runs migrations, and restarts PM2 — no rebuild on the instance.
+All three run under **PM2** on a single EC2 instance (t3.small), with Neon providing managed PostgreSQL. CI/CD is a two-stage GitHub Actions pipeline: CI runs typecheck, build on every PR and push to main; on success, the deploy workflow ships the prebuilt Vite `dist/` artifact to EC2 via `scp`, pulls latest source, installs deps, runs migrations, and restarts PM2 — no rebuild on the instance.
+
+---
+
+## Architecture Decisions
+
+### Why Vite + TanStack Router over Next.js?
+
+| Factor | Decision | Rationale |
+|--------|----------|-----------|
+| **Bundle size** | Vite | No SSR overhead, smaller client bundle for canvas-heavy app |
+| **Routing** | TanStack Router | Type-safe file-based routing, first-class search params, loaders |
+| **Dev experience** | Vite | Faster HMR, native ESM, simpler config |
+| **Canvas workload** | Client-only | No SSR needed for canvas; avoids hydration mismatches |
+| **Bundle analyzer** | Vite plugin | Built-in rollup-plugin-visualizer support |
+
+### Why Bun over Node.js?
+
+| Factor | Decision | Rationale |
+|--------|----------|-----------|
+| **Performance** | Bun | 2-3x faster cold starts, native TypeScript, built-in test runner |
+| **WebSocket** | Bun.serve | Native WebSocket server with pub/sub, no external deps |
+| **SQLite/Postgres** | Bun.sql | Zero-config driver, faster than node-postgres |
+| **Package manager** | bun install | 10-20x faster than npm/yarn |
+
+### Why Rough.js?
+
+| Factor | Decision | Rationale |
+|--------|----------|-----------|
+| **Aesthetic** | Hand-drawn | Organic, approachable feel — differentiates from sterile corporate tools |
+| **Performance** | Canvas-based | GPU-accelerated, scales with zoom, no DOM overhead |
+| **Extensibility** | Plugin system | Custom shapes, renderers, exporters |
+
+### Why Turborepo Monorepo?
+
+| Factor | Decision | Rationale |
+|--------|----------|-----------|
+| **Build caching** | Remote/local | Shared cache across CI and local |
+| **Workspace deps** | `workspace:*` | Single `bun install`, version sync |
+| **Pipeline** | `turbo run` | Parallel, topological task execution |
+
+### Why Neon PostgreSQL?
+
+| Factor | Decision | Rationale |
+|--------|----------|-----------|
+| **Serverless** | Auto-scale | No connection pooling needed, scales to zero |
+| **Branching** | Schema migrations | Preview deployments with isolated DB branches |
+| **Managed** | Zero ops | Backups, PITR, read replicas included |
 
 ---
 
@@ -74,7 +121,7 @@ On reconnection, the server sends the full authoritative state and the client re
 ### Collaboration
 - **Room-based**: create/join rooms via slug
 - **Real-time sync**: diff-based WebSocket broadcasting
-- **Cursor sync**: see other users' cursors
+- **Cursor sync**: see other users' cursors with names
 - **Chat**: per-room text chat
 
 ### Auth & Security
@@ -140,7 +187,7 @@ cp .env.example .env
 bun run dev
 ```
 
-- Frontend: `http://localhost:3000`
+- Frontend: `http://localhost:5173`
 - HTTP backend: `http://localhost:3001`
 - WebSocket backend: `ws://localhost:8080`
 
@@ -167,16 +214,29 @@ bun run build
 codraw/
 ├── apps/
 │   ├── frontend/
-│   │   ├── app/                  # Next.js App Router pages
-│   │   ├── components/           # React UI components
-│   │   └── draw/                 # Canvas engine, rendering, input handling
+│   │   ├── src/
+│   │   │   ├── routes/           # TanStack Router file-based routes
+│   │   │   │   ├── __root.tsx    # Root layout + providers
+│   │   │   │   ├── index.tsx     # Landing page
+│   │   │   │   ├── signin.tsx    # Sign in page
+│   │   │   │   ├── signup.tsx    # Sign up page
+│   │   │   │   └── canvas/
+│   │   │   │       └── $roomId.tsx # Canvas page (dynamic route)
+│   │   │   ├── components/       # React UI components
+│   │   │   ├── draw/             # Canvas engine, rendering, input handling
+│   │   │   ├── lib/              # Auth context, utilities
+│   │   │   ├── main.tsx          # App entry point
+│   │   │   └── routeTree.gen.ts  # Auto-generated type-safe route tree
+│   │   ├── index.html            # Vite entry HTML
+│   │   ├── vite.config.ts        # Vite + TanStack Router plugin
+│   │   └── package.json
 │   ├── http-backend/
 │   │   └── src/                  # Auth, room CRUD, middleware, session
 │   └── ws-backend/
 │       └── src/                  # WebSocket server, room broadcasting
 ├── packages/
 │   ├── db/                       # Prisma schema + migrations
-│   ├── shapes/                   # Shape type definitions
+│   ├── shapes/                   # Shape type definitions + utilities
 │   ├── ui/                       # Design system — SURFACE/PANEL, Slider, IconButton
 │   ├── common/                   # Shared types, JWT utils, env config
 │   ├── typescript-config/        # Shared tsconfig presets
@@ -213,6 +273,7 @@ See [features.md](./features.md) for the full day-by-day development timeline (J
 | Auth & Rooms | Jul 2025 | Signup/signin, bcrypt, Prisma schema, room CRUD |
 | Real-time Sync | Jul 2025 | WebSocket backend, diff-based broadcasting, reconnection |
 | Production Hardening | Aug 2026 | Session table, httpOnly cookies, optimistic concurrency, CI/CD, incidents |
+| **Frontend Migration** | **Aug 2026** | **Next.js → Vite + TanStack Router** |
 
 ---
 
