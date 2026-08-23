@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { X } from "lucide-react";
-import { Kbd, SectionLabel, useEscapeToClose, useFocusTrap } from "./ui";
+import { useEscapeToClose, useFocusTrap } from "./ui";
 
 /**
  * A single shortcut entry.
@@ -109,7 +109,11 @@ const SECTIONS: ShortcutSection[] = [
  * A key badge — a single rounded-rectangle chip for one key name.
  */
 function KeyBadge({ label }: { label: string }) {
-    return <Kbd>{label}</Kbd>;
+    return (
+        <kbd className="inline-flex items-center justify-center min-w-[20px] h-[18px] px-2 py-0.5 rounded-sm border border-white/10 bg-white/10 font-mono text-[11px] leading-none text-gray-300">
+            {label}
+        </kbd>
+    );
 }
 
 /**
@@ -117,15 +121,15 @@ function KeyBadge({ label }: { label: string }) {
  */
 function ShortcutRow({ entry }: { entry: ShortcutEntry }) {
     return (
-        <div className="flex items-center justify-between gap-3 py-2">
-            <span className="text-13 text-text-secondary dark:text-text-secondary-dark">
+        <div className="flex items-center justify-between gap-3 py-2 border-b border-white/5">
+            <span className="text-sm text-gray-200">
                 {entry.label}
             </span>
             <div className="flex items-center gap-1.5 shrink-0">
                 {entry.combos.map((combo, i) => (
                     <span key={i} className="flex items-center gap-1">
                         {i > 0 && (
-                            <span className="text-10 text-muted-foreground dark:text-muted-foreground-dark mr-0.5">
+                            <span className="text-[10px] text-gray-500 mr-0.5">
                                 /
                             </span>
                         )}
@@ -145,8 +149,8 @@ function ShortcutRow({ entry }: { entry: ShortcutEntry }) {
 function ShortcutSectionBlock({ section, className = "" }: { section: ShortcutSection; className?: string }) {
     return (
         <section className={className}>
-            <SectionLabel>{section.title}</SectionLabel>
-            <div className="divide-y divide-border-subtle dark:divide-border-subtle-dark">
+            <h3 className="text-sm font-semibold text-gray-400 mb-3">{section.title}</h3>
+            <div className="divide-y divide-white/5">
                 {section.entries.map((entry, i) => (
                     <ShortcutRow key={i} entry={entry} />
                 ))}
@@ -189,28 +193,28 @@ export function ShortcutsPanel({
             onClick={onClose}
         >
             <div
-                className="flex flex-col bg-elevated dark:bg-elevated-dark/95 backdrop-blur-xl rounded-xl border border-border-subtle dark:border-border-subtle-dark max-w-[680px] w-full mx-4 max-h-[78vh] shadow-float dark:shadow-float-dark animate-modal-in motion-reduce:animate-none"
+                className="flex flex-col bg-[#1e1e1e] text-white rounded-xl shadow-2xl max-w-[800px] w-full mx-4 max-h-[78vh] animate-modal-in motion-reduce:animate-none"
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-border-subtle dark:border-border-subtle-dark shrink-0">
-                    <h2 id="shortcuts-title" className="text-sm font-medium text-foreground dark:text-foreground-dark">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0">
+                    <h2 id="shortcuts-title" className="text-sm font-medium text-white">
                         Keyboard Shortcuts
                     </h2>
                     <button
                         onClick={onClose}
-                        className="w-7 h-7 flex items-center justify-center rounded-md text-muted-foreground dark:text-muted-foreground-dark transition-[color,background-color] duration-fast cursor-pointer active:bg-active dark:active:bg-active-dark hover:text-foreground dark:hover:text-foreground-dark hover:bg-hover dark:hover:bg-hover-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                        className="w-8 h-8 flex items-center justify-center rounded-md text-gray-400 transition-[color,background-color] duration-fast cursor-pointer hover:text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                         aria-label="Close shortcuts panel"
                     >
                         <X size={16} />
                     </button>
                 </div>
 
-                <div className="overflow-y-auto px-5 py-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+                <div className="overflow-y-auto px-6 py-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                         <ShortcutSectionBlock section={SECTIONS[0]} />
                         <ShortcutSectionBlock section={SECTIONS[1]} />
                     </div>
-                    <div className="mt-6 pt-4 border-t border-border-subtle dark:border-border-subtle-dark">
+                    <div className="mt-8 pt-6 border-t border-white/10">
                         <ShortcutSectionBlock section={SECTIONS[2]} />
                     </div>
                 </div>
