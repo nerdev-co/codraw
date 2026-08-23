@@ -326,8 +326,7 @@ export class PointerInteractionManager {
         const width = coords[0] - this.startX;
         const height = coords[1] - this.startY;
 
-        // Minimum drag distance to commit a shape (prevents accidental click-commits)
-        const MIN_DRAG_DISTANCE = 5;
+        // Reuse existing minimum size constant (prevents accidental click-commits)
         const dragDistance = Math.hypot(width, height);
         const isDragBasedTool =
             this.context.selectedTool === "rect" ||
@@ -337,7 +336,7 @@ export class PointerInteractionManager {
             this.context.selectedTool === "stickyNote" ||
             this.context.selectedTool === "frame";
 
-        if (isDragBasedTool && dragDistance < MIN_DRAG_DISTANCE) {
+        if (isDragBasedTool && dragDistance < MIN_RESIZE_SIZE) {
             // Plain click with no real drag — don't commit a shape.
             // arrow/line/text/image are handled separately and already require explicit points.
             return;
