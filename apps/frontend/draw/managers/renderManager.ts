@@ -229,6 +229,7 @@ export class RenderManager {
         const sy = (vy - this.bakeWorldY) * scale;
         const sw = vw * scale;
         const sh = vh * scale;
+        this.api.ctx.save();
         this.api.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.api.ctx.drawImage(
             this.cacheCanvas,
@@ -241,6 +242,7 @@ export class RenderManager {
             this.api.canvas.width,
             this.api.canvas.height,
         );
+        this.api.ctx.restore();
     }
 
     /**
@@ -301,8 +303,14 @@ export class RenderManager {
     }
 
     private renderPass() {
-        this.api.ctx.clearRect(0, 0, this.context.cssWidth, this.context.cssHeight);
-        this.drawBackground(this.api.ctx, this.context.cssWidth, this.context.cssHeight);
+        const { canvas, ctx } = this.api;
+
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.setTransform(this.context.dpr, 0, 0, this.context.dpr, 0, 0);
+
+        this.drawBackground(ctx, this.context.cssWidth, this.context.cssHeight);
 
         if (!this.cacheUsable()) {
             this.buildCache();
@@ -387,6 +395,8 @@ export class RenderManager {
                 requestAnimationFrame(() => this.renderPass());
             }
         }
+
+        ctx.restore();
     }
 
     /**
