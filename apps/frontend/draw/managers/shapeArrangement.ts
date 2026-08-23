@@ -25,6 +25,8 @@ export class ShapeArrangement {
             if (shape) shape.groupId = groupId;
         }
         this.context.undoManager.push(prev, this.context.existingShapes);
+        this.api.invalidateCache();
+        this.api.clearCanvas();
         this.api.syncShapes();
     }
 
@@ -41,6 +43,8 @@ export class ShapeArrangement {
             if (shape) delete shape.groupId;
         }
         this.context.undoManager.push(prev, this.context.existingShapes);
+        this.api.invalidateCache();
+        this.api.clearCanvas();
         this.api.syncShapes();
     }
 
@@ -61,6 +65,8 @@ export class ShapeArrangement {
             }
         }
         this.context.undoManager.push(prev, this.context.existingShapes);
+        this.api.invalidateCache();
+        this.api.clearCanvas();
         this.api.syncShapes();
     }
 
@@ -81,6 +87,8 @@ export class ShapeArrangement {
             }
         }
         this.context.undoManager.push(prev, this.context.existingShapes);
+        this.api.invalidateCache();
+        this.api.clearCanvas();
         this.api.syncShapes();
     }
 
@@ -97,6 +105,8 @@ export class ShapeArrangement {
         const rest = this.context.existingShapes.filter(s => !s.id || !this.context.selectedIds.has(s.id));
         this.context.existingShapes = [...rest, ...selected];
         this.context.undoManager.push(prev, this.context.existingShapes);
+        this.api.invalidateCache();
+        this.api.clearCanvas();
         this.api.syncShapes();
     }
 
@@ -113,6 +123,8 @@ export class ShapeArrangement {
         const rest = this.context.existingShapes.filter(s => !s.id || !this.context.selectedIds.has(s.id));
         this.context.existingShapes = [...selected, ...rest];
         this.context.undoManager.push(prev, this.context.existingShapes);
+        this.api.invalidateCache();
+        this.api.clearCanvas();
         this.api.syncShapes();
     }
 
@@ -144,6 +156,8 @@ export class ShapeArrangement {
             this.context.textManager.updateBoundText(id);
         }
         this.context.undoManager.push(prev, this.context.existingShapes);
+        this.api.invalidateCache();
+        this.api.clearCanvas();
         this.api.syncShapes();
     }
 
@@ -175,6 +189,8 @@ export class ShapeArrangement {
             this.context.textManager.updateBoundText(id);
         }
         this.context.undoManager.push(prev, this.context.existingShapes);
+        this.api.invalidateCache();
+        this.api.clearCanvas();
         this.api.syncShapes();
     }
 
@@ -247,6 +263,8 @@ export class ShapeArrangement {
             this.context.textManager.updateBoundText(id);
         }
         this.context.undoManager.push(prev, this.context.existingShapes);
+        this.api.invalidateCache();
+        this.api.clearCanvas();
         this.api.syncShapes();
     }
 
@@ -283,6 +301,8 @@ export class ShapeArrangement {
             this.context.textManager.updateBoundText(id);
         }
         this.context.undoManager.push(prev, this.context.existingShapes);
+        this.api.invalidateCache();
+        this.api.clearCanvas();
         this.api.syncShapes();
     }
 
@@ -345,6 +365,8 @@ export class ShapeArrangement {
             this.context.textManager.updateBoundText(id);
         }
         this.context.undoManager.push(prev, this.context.existingShapes);
+        this.api.invalidateCache();
+        this.api.clearCanvas();
         this.api.syncShapes();
     }
 
